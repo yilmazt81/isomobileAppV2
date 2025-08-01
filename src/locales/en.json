@@ -55,5 +55,7 @@
   "passwordMustBeAtLeast4Characters": "Password must be at least 4 characters.",
   "passwordrequired": "Password is required",
   "passwordmustbematch": "Passwords must match",
-  "confirmPasswordRequired": "Confirm Password is required"
+  "confirmPasswordRequired": "Confirm Password is required",
+  "ResetPasswordSendCheckMail": "A password reset link has been sent to your email address. Check your inbox.",
+  "SendComplated": "Sent"
 }

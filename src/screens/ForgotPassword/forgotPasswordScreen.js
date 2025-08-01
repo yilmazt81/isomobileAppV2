@@ -7,36 +7,46 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
-import   LinearGradient   from 'react-native-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import LottieView from 'lottie-react-native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import styles from './forgotPasswordStyles';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
- 
-// Eğer Firebase kullanıyorsan:
-// import { sendPasswordResetEmail } from 'firebase/auth';
-// import { auth } from '../firebaseSetup';
 
+// Eğer Firebase kullanıyorsan:
+import { sendPasswordResetEmail } from "@react-native-firebase/auth";
+import auth from '@react-native-firebase/auth';
+const { t } = useTranslation();
 const ForgotSchema = Yup.object().shape({
   email: Yup.string()
     .trim()
-    .email('Geçerli e-posta girin')
-    .required('E-posta gerekli'),
+    .email(t("entervalidmail"))
+    .required(t("emailrequred")),
 });
 
 const ForgotPasswordScreen = ({ navigation }) => {
-  const { t } = useTranslation();
+
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    Keyboard.dismiss();
     try {
-      // Firebase ile örnek:
-      // await sendPasswordResetEmail(auth, values.email);
-      Alert.alert('Gönderildi', 'Şifre sıfırlama e-postası gönderildi.'); 
+      await sendPasswordResetEmail(auth, values.email);
+      Alert.alert(
+        t("SendComplated"),
+        t("ResetPasswordSendCheckMail")
+      );
       resetForm();
     } catch (err) {
-      Alert.alert('Hata', err.message || 'İşlem başarısız oldu.');
+      // Hataları kullanıcıya daha okunabilir yap
+      let message = 'Bir hata oluştu.';
+      if (err.code === 'auth/user-not-found') {
+        message = 'Bu e-posta ile kayıtlı kullanıcı bulunamadı.';
+      } else if (err.code === 'auth/invalid-email') {
+        message = 'Geçersiz e-posta formatı.';
+      }
+      Alert.alert('Hata', message);
     } finally {
       setSubmitting(false);
     }
@@ -93,7 +103,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
                   disabled={isSubmitting}
                 >
                   <Text style={styles.buttonText}>
-                    {isSubmitting ?  t("Waiting") : t("ResetPasswordEmailSent")}
+                    {isSubmitting ? t("Waiting") : t("ResetPasswordEmailSent")}
                   </Text>
                 </TouchableOpacity>
 

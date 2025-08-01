@@ -32,8 +32,8 @@ export const AuthContext = React.createContext();
 const AuthStackScreen = () => (
   <AuthStack.Navigator>
     <AuthStack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-    <AuthStack.Screen name="Register" component={RegisterScreen}  options={{ headerShown: false }}/>
-    <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: false }}/>
+    <AuthStack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+    <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: false }} />
   </AuthStack.Navigator>
 );
 
@@ -71,9 +71,13 @@ const DashboardStack = () => {
               <FontAwesome6
                 name="qrcode"
                 size={25}
-                color="black" 
+                color="black"
                 onPress={() => navigation.navigate('BarcodeScanner')}
-              /> 
+              />
+              <FontAwesome6 name='arrow-right-from-bracket'
+                size={25}
+                color="black"
+                onPress={logout} />
             </>
           ),
         })}

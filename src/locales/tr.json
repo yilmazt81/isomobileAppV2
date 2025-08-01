@@ -50,5 +50,7 @@
   "passwordMustBeAtLeast4Characters": "Şifre en az 4 karakter olmalıdır.",
   "passwordrequired": "Şifre gerekli",
   "passwordmustbematch": "Şifreler eşleşmeli",
-  "confirmPasswordRequired": "Şifre onayı gerekli"
+  "confirmPasswordRequired": "Şifre onayı gerekli",
+  "ResetPasswordSendCheckMail":"Şifre sıfırlama bağlantısı e-posta adresine gönderildi. Gelen kutunu kontrol et.",
+  "SendComplated":"Gönderildi"
 }
