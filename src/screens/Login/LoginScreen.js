@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useContext, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,37 +17,63 @@ import styles from './loginStyles'; // Adjust the import path as necessary
 import i18n from '../../i18n'; // i18n yapılandırması import edilmeli
 import { useTranslation } from 'react-i18next';
 import { Picker } from '@react-native-picker/picker';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import ErrorMessage from '../../companent/ErrorMessage';
+import auth from '@react-native-firebase/auth';
 
 const availableLanguages = [
-  { label: 'Türkçe', value: 'tr' },
-  { label: 'English', value: 'en' }, 
-  // gerekiyorsa daha ekle: { label: 'Français', value: 'fr' }
+  { label: 'Türkçe', value: 'tr', flag: '🇹🇷' },
+  { label: 'English', value: 'en', flag: '🇺🇸' },
+  // istediğin kadar ekle: { label: 'Français', value: 'fr', flag: '🇫🇷' }
 ];
 
-
+const LANGUAGE_KEY = 'appLanguage';
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [secure, setSecure] = useState(true);
   const { t, i18n } = useTranslation();
   const [lang, setLang] = useState(i18n.language);
-
-
+  const { setUserToken } = useContext(AuthContext);
+  const [loginError, setLoginError] = useState(null);
   const togglePasswordVisibility = () => setSecure(!secure);
 
   const handleLogin = () => {
-    console.log('Giriş yapılıyor...');
+    auth()
+      .signInWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        const uid = userCredential.user.uid;
+        setUserToken(uid); // AppNavigator'da kullanıcıyı login etmiş sayıyoruz
+      })
+      .catch(error => {
+        setLoginError(t(error.code));// örnek: Şifre hatalıysa gösterilir
+      });
   };
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
+  const changeLanguage = async (lng) => {
+    setLang(lng);
+    await setStoredLanguage(lng);
     // Eğer RTL bir dil eklersen buraya I18nManager ayarı eklenir
   };
+
+
+  useEffect(() => {
+    // stored dili yükle (fallback zaten i18n içinde yapılmış)
+    const load = async () => {
+      try {
+        const stored = await AsyncStorage.getItem(LANGUAGE_KEY);
+        if (stored) {
+          setLang(stored);
+        }
+      } catch { }
+    };
+    load();
+  }, []);
+
   return (
     <LinearGradient colors={['#090979', '#00D4FF', '#020024']} style={styles.container}>
 
       <SafeAreaView style={styles.container}>
- {/* Dil seçici dropdown */}
+
         <View style={styles.pickerWrapper}>
           <Picker
             selectedValue={lang}
@@ -57,10 +83,16 @@ const LoginScreen = ({ navigation }) => {
             dropdownIconColor="#fff"
           >
             {availableLanguages.map((l) => (
-              <Picker.Item key={l.value} label={l.label} value={l.value} />
+              <Picker.Item
+                key={l.value}
+                label={`${l.flag} ${l.label}`}
+                value={l.value}
+              />
             ))}
           </Picker>
         </View>
+
+
         <View style={styles.card}>
           <LottieView
             source={require('../assets/Login_icon.json')}
@@ -99,7 +131,7 @@ const LoginScreen = ({ navigation }) => {
           <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <Text style={styles.buttonText}>{t("login")}</Text>
           </TouchableOpacity>
-
+          <ErrorMessage message={loginError} />
           <TouchableOpacity onPress={() => navigation.navigate('Register')}>
             <Text style={styles.footerText}>
               {t("DontYouHaveAccount")} <Text style={styles.link}>{t("register")}</Text>

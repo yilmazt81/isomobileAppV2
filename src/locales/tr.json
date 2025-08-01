@@ -37,5 +37,9 @@
   "OK":"Tamam",
   "SettingManuel":"Manuel Ayarlar",
   "DontYouHaveAccount":"Hesabınız yok mu?",
-  "DidyouForgotPassword":"Şifrenizi mi unuttunuz?"
+  "DidyouForgotPassword":"Şifrenizi mi unuttunuz?",
+  "WriteYourMailForResetPassword":"Kayıtlı e-posta adresini gir, sana sıfırlama bağlantısı göndereceğiz.",
+  "Waiting":"Bekleniyor...",
+  "ResetPasswordEmailSent":"Şifre Sıfırlama E-postası Gönder",
+  "BackToLoginScreen": "Giriş ekranına geri dön"
 }

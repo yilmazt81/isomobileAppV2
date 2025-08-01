@@ -42,5 +42,9 @@
   "OK": "OK",
   "SettingManuel": "Manual Settings",
   "DontYouHaveAccount": "Dont You Have an Account?",
-  "DidyouForgotPassword": "Forgot Your Password?"
+  "DidyouForgotPassword": "Forgot Your Password?",
+   "Waiting":"Waiting...",
+  "ResetPasswordEmailSent":"Password reset email sent.",
+  "BackToLoginScreen": "Back to Login Screen",
+  "WriteYourMailForResetPassword": "Enter your registered email address, we will send you a reset link."
 }

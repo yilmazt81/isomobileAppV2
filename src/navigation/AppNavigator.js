@@ -20,6 +20,7 @@ import auth from '@react-native-firebase/auth';
 import WifiScannerScreen from '../screens/WifiScanner/WifiScannerScreen'; // yeni ekran
 import PlantBigView from '../screens/Devicescreen/Plantvase/PlantBigView'; // yeni ekran
 import ManuelSetting from '../screens/ManuelSetting/ManuelSettingScreen'; // yeni ekran
+import ForgotPasswordScreen from '../screens/ForgotPassword/forgotPasswordScreen';
 
 const AuthStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -32,6 +33,7 @@ const AuthStackScreen = () => (
   <AuthStack.Navigator>
     <AuthStack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
     <AuthStack.Screen name="Register" component={RegisterScreen} />
+    <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
   </AuthStack.Navigator>
 );
 
@@ -56,7 +58,7 @@ const DashboardStack = () => {
         options={({ navigation }) => ({
           title: 'Dashboard',
           headerLeft: () => (
-            <Icon
+            <FortAwesome6
               name="menu-outline"
               size={25}
               color="black"
@@ -71,14 +73,7 @@ const DashboardStack = () => {
                 size={25}
                 color="black" 
                 onPress={() => navigation.navigate('BarcodeScanner')}
-              />
-              <Icon
-                name="arrow-right-from-bracket"
-                size={25}
-                color="black"
-                style={{ marginRight: 15 }}
-                onPress={logout}
-              />
+              /> 
             </>
           ),
         })}
@@ -88,6 +83,7 @@ const DashboardStack = () => {
       <Stack.Screen name="WifiScanner" component={WifiScannerScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen name="ManuelSetting" component={ManuelSetting} />
       <Stack.Screen name="PlantBigView" component={PlantBigView} title="Bitki Özellikleri" />
+
     </Stack.Navigator>
   );
 };
