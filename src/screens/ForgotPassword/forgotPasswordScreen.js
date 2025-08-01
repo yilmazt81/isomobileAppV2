@@ -18,7 +18,7 @@ import i18n from '../../i18n';
 // Eğer Firebase kullanıyorsan:
 import { sendPasswordResetEmail } from "@react-native-firebase/auth";
 import auth from '@react-native-firebase/auth';
-const { t } = useTranslation();
+import { t } from 'i18next';
 const ForgotSchema = Yup.object().shape({
   email: Yup.string()
     .trim()
