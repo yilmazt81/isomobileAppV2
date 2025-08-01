@@ -32,8 +32,8 @@ export const AuthContext = React.createContext();
 const AuthStackScreen = () => (
   <AuthStack.Navigator>
     <AuthStack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-    <AuthStack.Screen name="Register" component={RegisterScreen} />
-    <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+    <AuthStack.Screen name="Register" component={RegisterScreen}  options={{ headerShown: false }}/>
+    <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: false }}/>
   </AuthStack.Navigator>
 );
 
@@ -58,8 +58,8 @@ const DashboardStack = () => {
         options={({ navigation }) => ({
           title: 'Dashboard',
           headerLeft: () => (
-            <FortAwesome6
-              name="menu-outline"
+            <FontAwesome6
+              icon="bars"
               size={25}
               color="black"
               style={{ marginLeft: 20 }}
@@ -69,7 +69,7 @@ const DashboardStack = () => {
           headerRight: () => (
             <>
               <FontAwesome6
-                name="qbarcode"
+                name="qrcode"
                 size={25}
                 color="black" 
                 onPress={() => navigation.navigate('BarcodeScanner')}
@@ -95,7 +95,7 @@ const TabNavigator = () => (
       component={HomeScreen}
       options={{
         tabBarIcon: ({ color, size }) => (
-          <FontAwesome6 name="house" size={size} color={color} />
+          <FontAwesome6 name="server" size={size} color={color} />
         ),
       }}
     />
@@ -104,7 +104,7 @@ const TabNavigator = () => (
       component={ProfileScreen}
       options={{
         tabBarIcon: ({ color, size }) => (
-          <FontAwesome6 name="person" size={size} color={color} />
+          <FontAwesome6 name="id-card" size={size} color={color} />
         ),
       }}
     />

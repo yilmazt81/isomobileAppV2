@@ -43,8 +43,17 @@
   "SettingManuel": "Manual Settings",
   "DontYouHaveAccount": "Dont You Have an Account?",
   "DidyouForgotPassword": "Forgot Your Password?",
-   "Waiting":"Waiting...",
-  "ResetPasswordEmailSent":"Password reset email sent.",
+  "Waiting": "Waiting...",
+  "ResetPasswordEmailSent": "Password reset email sent.",
   "BackToLoginScreen": "Back to Login Screen",
-  "WriteYourMailForResetPassword": "Enter your registered email address, we will send you a reset link."
+  "WriteYourMailForResetPassword": "Enter your registered email address, we will send you a reset link.",
+  "Phone": "Cell Phone",
+  "confirmPassword": "Confirm Password",
+  "nameandSurnamerequred": "Name and Surname are required",
+  "entervalidmail": "Enter a valid email",
+  "emailrequred": "email is required  ",
+  "passwordMustBeAtLeast4Characters": "Password must be at least 4 characters.",
+  "passwordrequired": "Password is required",
+  "passwordmustbematch": "Passwords must match",
+  "confirmPasswordRequired": "Confirm Password is required"
 }

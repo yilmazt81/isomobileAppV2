@@ -41,5 +41,14 @@
   "WriteYourMailForResetPassword":"Kayıtlı e-posta adresini gir, sana sıfırlama bağlantısı göndereceğiz.",
   "Waiting":"Bekleniyor...",
   "ResetPasswordEmailSent":"Şifre Sıfırlama E-postası Gönder",
-  "BackToLoginScreen": "Giriş ekranına geri dön"
+  "BackToLoginScreen": "Giriş ekranına geri dön",
+  "Phone": "Cep Telefonu",
+  "confirmPassword": "Şifreyi Onayla",
+  "nameandSurnamerequred": "Ad ve Soyad gerekiyor",
+  "entervalidmail":"Geçerli e-posta girin",
+  "emailrequred": "E-posta gerekli",
+  "passwordMustBeAtLeast4Characters": "Şifre en az 4 karakter olmalıdır.",
+  "passwordrequired": "Şifre gerekli",
+  "passwordmustbematch": "Şifreler eşleşmeli",
+  "confirmPasswordRequired": "Şifre onayı gerekli"
 }

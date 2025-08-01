@@ -15,27 +15,26 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import styles from './signupStyles';
 
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import { t } from 'i18next';
 
 const SignupSchema = Yup.object().shape({
-    name: Yup.string().trim().required('Ad soyad gerekli'),
+    name: Yup.string().trim().required(t("nameandSurnamerequred")),
     email: Yup.string()
         .trim()
-        .email('Geçerli e-posta girin')
-        .required('E-posta gerekli'),
+        .email(t("entervalidmail"))
+        .required(t("emailrequred")),
     password: Yup.string()
-        .min(6, 'Şifre en az 6 karakter olmalı')
-        .required('Şifre gerekli'),
+        .min(4, t("passwordMustBeAtLeast4Characters"))
+        .required(t("passwordRequired")),
     confirm: Yup.string()
-        .oneOf([Yup.ref('password')], 'Şifreler eşleşmiyor')
-        .required('Şifre onayı gerekli'),
+        .oneOf([Yup.ref('password')], t("passwordsMustMatch"))
+        .required(t("confirmPasswordRequired")),
 });
 
 
-const SignupScreen = ({ navigation }) => {
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirm, setConfirm] = useState('');
+const SignupScreen = ({ navigation }) => { 
     const [secure, setSecure] = useState(true);
     const [secureConfirm, setSecureConfirm] = useState(true);
 
@@ -46,6 +45,20 @@ const SignupScreen = ({ navigation }) => {
         try {
             // Burada Firebase / API çağrısı yap
             // örnek: await signUpWithEmail(values.email, values.password);
+
+
+            const userCredential = await auth().createUserWithEmailAndPassword(values.email, values.password);
+            const uid = userCredential.user.uid;
+
+            // Firestore'a kullanıcı bilgilerini kaydet
+            await firestore().collection('users').doc(uid).set({
+                fullName: values.name,
+                phone: values.phone,
+                email: values.email,
+                userid: uid,
+                createdAt: firestore.FieldValue.serverTimestamp(),
+            });
+
             Alert.alert('Başarılı', `Hoş geldin, ${values.name}`);
         } catch (e) {
             Alert.alert('Hata', e.message || 'Kayıt olurken bir sorun oluştu');
@@ -59,15 +72,15 @@ const SignupScreen = ({ navigation }) => {
             <SafeAreaView style={styles.container}>
                 <View style={styles.card}>
                     <LottieView
-                        source={require('../assets/Login_icon.json')}
+                        source={require('../assets/login_register.json')}
                         autoPlay
                         loop
                         style={styles.lottie}
                     />
 
-                    <Text style={styles.title}>Kayıt Ol</Text>
+                    <Text style={styles.title}>{t("register")}</Text>
                     <Formik
-                        initialValues={{ name: '', email: '', password: '', confirm: '' }}
+                        initialValues={{ name: '', email: '', password: '', confirm: '' ,phone: ''}}
                         validationSchema={SignupSchema}
                         onSubmit={handleSignup}
                     >
@@ -94,9 +107,26 @@ const SignupScreen = ({ navigation }) => {
                                 {touched.name && errors.name && (
                                     <Text style={styles.errorText}>{errors.name}</Text>
                                 )}
+
+                                
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="E-posta"
+                                    placeholder={t("Phone")}
+                                    placeholderTextColor="#aaa"
+
+                                    value={values.phone}
+                                    onChangeText={handleChange('phone')}
+                                 
+                                    autoCapitalize="none"
+                                    onBlur={handleBlur('phone')}
+                                />
+                                {touched.email && errors.email && (
+                                    <Text style={styles.errorText}>{errors.phone}</Text>
+                                )}
+
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder={t("email")}
                                     placeholderTextColor="#aaa"
 
                                     value={values.email}
@@ -112,7 +142,7 @@ const SignupScreen = ({ navigation }) => {
                                 <View style={styles.passwordContainer}>
                                     <TextInput
                                         style={styles.passwordInput}
-                                        placeholder="Şifre"
+                                        placeholder={t("password")}
                                         placeholderTextColor="#aaa"
                                         value={values.password}
                                         onChangeText={handleChange('password')}
@@ -130,7 +160,7 @@ const SignupScreen = ({ navigation }) => {
                                 <View style={styles.passwordContainer}>
                                     <TextInput
                                         style={styles.passwordInput}
-                                        placeholder="Şifreyi Onayla"
+                                        placeholder=  {t("confirmPassword")}
                                         placeholderTextColor="#aaa"
                                         value={values.confirm}
                                         onChangeText={handleChange('confirm')}
