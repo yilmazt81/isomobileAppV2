@@ -1,40 +1,23 @@
-import * as React from 'react';
+import React, { useState } from 'react';
+
 import { View } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { Button } from '@react-navigation/elements';
+import { FontAwesome6 } from "@react-native-vector-icons/fontawesome6";
+import LoginScreen from './src/screens/Login/LoginScreen'; // Adjust the import path as necessary
 
-function HomeScreen() {
-  const navigation = useNavigation();
-
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Button onPress={() => navigation.navigate('Notifications')}>
-        Go to notifications
-      </Button>
-    </View>
-  );
-}
-
-function NotificationsScreen() {
-  const navigation = useNavigation();
-
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Button onPress={() => navigation.goBack()}>Go back home</Button>
-    </View>
-  );
-}
-
-const Drawer = createDrawerNavigator();
+import AppNavigator, { AuthContext } from './src/navigation/AppNavigator';
+ 
 
 export default function App() {
-  return (
-    <NavigationContainer>
-      <Drawer.Navigator initialRouteName="Home">
-        <Drawer.Screen name="Home" component={HomeScreen} />
-        <Drawer.Screen name="Notifications" component={NotificationsScreen} />
-      </Drawer.Navigator>
-    </NavigationContainer>
+   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+
+ return (
+    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn }}>
+      <AppNavigator />
+    </AuthContext.Provider>
   );
+
 }
