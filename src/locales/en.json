@@ -59,5 +59,9 @@
   "ResetPasswordSendCheckMail": "A password reset link has been sent to your email address. Check your inbox.",
   "SendComplated": "Sent",
   "SmartDevice1": "Smart Flower Pot",
-  "SmartVase2Multi": "2 Pump Flower Irrigation System"
+  "SmartVase2Multi": "2 Pump Flower Irrigation System",
+  "registerdevice": "Select Device",
+  "devicetype": "Device Type",
+  "DeviceWifiName": "Device Wifi Name",
+  "DeviceWifiPassword": "Device Wifi Password"
 }

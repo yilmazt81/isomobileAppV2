@@ -54,5 +54,11 @@
   "ResetPasswordSendCheckMail":"Şifre sıfırlama bağlantısı e-posta adresine gönderildi. Gelen kutunu kontrol et.",
   "SendComplated":"Gönderildi",
   "SmartDevice1":"Akıllı Saksı",
-  "SmartVase2Multi":"2 Pompalı Çiçek Sulama Sistemi"
+  "SmartVase2Multi":"2 Pompalı Çiçek Sulama Sistemi",
+  "registerdevice":"Cihaz Seç",
+  "devicetype":"Cihaz Türü",
+  "DeviceWifiName":"Cihaz Wifi Adi",
+  "DeviceWifiPassword":"Cihaz Wifi Şifresi",
+  "Next":"İleri"
+  
 }

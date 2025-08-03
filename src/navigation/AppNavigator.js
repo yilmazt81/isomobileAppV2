@@ -124,7 +124,7 @@ const DrawerNavigator = () => (
       component={DashboardStack}
       options={{
         drawerIcon: ({ color, size }) => (
-          <FontAwesome6 name="house" size={size} color={color} />
+          <MaterialDesignIcons name="house" size={size} color={color} />
         ),
       }}
     />
@@ -133,7 +133,7 @@ const DrawerNavigator = () => (
       component={SettingsScreen}
       options={{
         drawerIcon: ({ color, size }) => (
-          <FontAwesome6 name="gears" size={size} color={color} />
+          <MaterialDesignIcons name="cog" size={size} color={color} />
         ),
       }}
     />

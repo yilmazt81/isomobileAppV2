@@ -17,7 +17,8 @@ import {
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import LinearGradient from 'react-native-linear-gradient';
 import { useTranslation } from 'react-i18next';
-const { t, i18n } = useTranslation();
+
+import { Button } from 'react-native-paper';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -64,59 +65,44 @@ const SelectField = ({ label, value, onChange, items }) => {
 };
 
 const ManuelSetting = ({ navigation, route }) => {
+
+    const { t, i18n } = useTranslation();
+
     const params = route?.params || {};
     const [deviceType] = React.useState([
-        { label: t('SmartDevice1'), value: 'SmartDevice1' },
-        { label: t('SmartVase2Multi'), value: 'SmartVase2Multi' },
+        { label: t('SmartDevice1'), value: 'SmartDevice1', wifiName: "smartVasewf", wifiPassword: "12345678" },
+        { label: t('SmartVase2Multi'), value: 'SmartVase2Multi', wifiName: "smartVase2", wifiPassword: "78945621" },
     ]);
     const [dropdown, setDropdown] = useState(null);
-    const [field1, setField1] = useState('');
-    const [field2, setField2] = useState('');
-    const [field3, setField3] = useState('');
+    const [wifiName, setWifiName] = useState('');
+    const [wifiPassword, setWifiPassword] = useState('');
+
     const [submitting, setSubmitting] = useState(false);
-    const scale = React.useRef(new Animated.Value(1)).current;
 
-    const validate = () => {
-        if (!dropdown) return 'Açılan kutu seçilmedi.';
-        if (!field1.trim()) return 'Birinci alan boş.';
-        if (!field2.trim()) return 'İkinci alan boş.';
-        if (!field3.trim()) return 'Üçüncü alan boş.';
-        return null;
-    };
 
-    const handlePressIn = () => {
-        Animated.spring(scale, {
-            toValue: 0.97,
-            useNativeDriver: true,
-            friction: 8,
-            tension: 120,
-        }).start();
-    };
 
-    const handlePressOut = () => {
-        Animated.spring(scale, {
-            toValue: 1,
-            useNativeDriver: true,
-            friction: 8,
-            tension: 120,
-        }).start();
-    };
+
 
     const onSubmit = () => {
-        const err = validate();
-        if (err) {
-            Alert.alert('Hata', err);
-            return;
-        }
-        setSubmitting(true);
-        setTimeout(() => {
-            setSubmitting(false);
-            Alert.alert('Başarılı', 'Kayıt tamamlandı.');
-        }, 1000);
+        navigation.navigate("WifiSettings", {
+            deviceType: dropdown,
+            devicessid: wifiName,
+            devicepassword: wifiPassword
+        });
+
     };
 
+    const dropdownChanged = (e) => {
+        setDropdown(e);
+        var findDevice = deviceType.find(t => t.value == e);
+
+        setWifiName(findDevice?.wifiName);
+        setWifiPassword(findDevice?.wifiPassword);
+        setSubmitting(true);
+    }
     return (
-        <LinearGradient colors={['#090979', '#00D4FF', '#020024']} style={styles.outerContainer}>
+        <LinearGradient colors={['#090979', '#00D4FF', '#020024']}
+            style={styles.outerContainer}>
             <SafeAreaView style={{ flex: 1 }}>
                 <KeyboardAvoidingView
                     behavior={Platform.select({ ios: 'padding', android: undefined })}
@@ -128,7 +114,7 @@ const ManuelSetting = ({ navigation, route }) => {
                     >
                         <View style={styles.formWrapper}>
                             <View style={styles.card}>
-                                <Text style={styles.title}>Kayıt Ol</Text>
+                                <Text style={styles.title}>{t("registerdevice")}</Text>
 
                                 {/* Alt vurgu gradient çubuğu */}
                                 <LinearGradient
@@ -139,50 +125,38 @@ const ManuelSetting = ({ navigation, route }) => {
                                 />
 
                                 <SelectField
-                                    label="Kategori"
+                                    label={t("devicetype")}
                                     value={dropdown}
-                                    onChange={setDropdown}
+                                    onChange={(e) => dropdownChanged(e)}
                                     items={deviceType}
                                 />
 
                                 <InputField
-                                    label="Ad"
-                                    value={field1}
-                                    onChange={setField1}
-                                    placeholder="İsminizi girin"
+                                    label={t("DeviceWifiName")}
+                                    value={wifiName}
+                                    onChange={setWifiName}
+                                    placeholder={t("WFSettingsSSID")}
                                 />
                                 <InputField
-                                    label="E-posta"
-                                    value={field2}
-                                    onChange={setField2}
+                                    label={t("DeviceWifiPassword")}
+                                    value={wifiPassword}
+                                    onChange={setWifiPassword}
+                                    secure
                                     placeholder="ornek@site.com"
                                 />
-                                <InputField
-                                    label="Şifre"
-                                    value={field3}
-                                    onChange={setField3}
-                                    placeholder="********"
-                                    secure
-                                />
 
-                                <Animated.View style={{ transform: [{ scale }], marginTop: 8 }}>
-                                    <TouchableOpacity
-                                        onPress={onSubmit}
-                                        activeOpacity={0.8}
-                                        disabled={submitting}
-                                        onPressIn={handlePressIn}
-                                        onPressOut={handlePressOut}
-                                        style={[styles.submitButton, submitting && { opacity: 0.6 }]}
-                                    >
-                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                            <MaterialDesignIcons name="account-check-outline" size={20} color="#fff" />
-                                            <Text style={styles.submitText}>
-                                                {submitting ? 'Gönderiliyor...' : 'Kayıt Ol'}
-                                            </Text>
-                                        </View>
-                                        <MaterialDesignIcons name="chevron-right" size={20} color="#fff" />
-                                    </TouchableOpacity>
-                                </Animated.View>
+                                <View>
+
+                                    <Button disabled={!submitting} icon={({ size, color }) => (
+                                        <MaterialDesignIcons name="skip-next"
+                                            size={size}
+                                            color={color} />
+                                    )}
+                                        mode="contained" onPress={onSubmit}>
+                                        {t("Next")}
+                                    </Button>
+                                </View>
+
                             </View>
                         </View>
                     </ScrollView>
