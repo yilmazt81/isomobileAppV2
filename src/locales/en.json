@@ -57,5 +57,7 @@
   "passwordmustbematch": "Passwords must match",
   "confirmPasswordRequired": "Confirm Password is required",
   "ResetPasswordSendCheckMail": "A password reset link has been sent to your email address. Check your inbox.",
-  "SendComplated": "Sent"
+  "SendComplated": "Sent",
+  "SmartDevice1": "Smart Flower Pot",
+  "SmartVase2Multi": "2 Pump Flower Irrigation System"
 }

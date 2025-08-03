@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { FontAwesome6 } from "@react-native-vector-icons/fontawesome6";
 
+import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 
 import LoginScreen from '../screens/Login/LoginScreen';
 import RegisterScreen from '../screens/SignupScreen/SignupScreen';
@@ -58,8 +59,8 @@ const DashboardStack = () => {
         options={({ navigation }) => ({
           title: 'Dashboard',
           headerLeft: () => (
-            <FontAwesome6
-              icon="bars"
+            <MaterialDesignIcons
+              name="menu"
               size={25}
               color="black"
               style={{ marginLeft: 20 }}
@@ -68,15 +69,17 @@ const DashboardStack = () => {
           ),
           headerRight: () => (
             <>
-              <FontAwesome6
+              <MaterialDesignIcons
                 name="qrcode"
                 size={25}
                 color="black"
+                style={{ marginLeft: 20 }}
                 onPress={() => navigation.navigate('BarcodeScanner')}
               />
-              <FontAwesome6 name='arrow-right-from-bracket'
+              <MaterialDesignIcons name='logout'
                 size={25}
                 color="black"
+                style={{ marginLeft: 20 }}
                 onPress={logout} />
             </>
           ),
@@ -99,7 +102,7 @@ const TabNavigator = () => (
       component={HomeScreen}
       options={{
         tabBarIcon: ({ color, size }) => (
-          <FontAwesome6 name="server" size={size} color={color} />
+          <MaterialDesignIcons name="devices" size={size} color={color} />
         ),
       }}
     />
@@ -108,7 +111,7 @@ const TabNavigator = () => (
       component={ProfileScreen}
       options={{
         tabBarIcon: ({ color, size }) => (
-          <FontAwesome6 name="id-card" size={size} color={color} />
+          <MaterialDesignIcons name="face-woman-profile" size={size} color={color} />
         ),
       }}
     />

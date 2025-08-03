@@ -1,25 +1,74 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Alert, StyleSheet, PermissionsAndroid, Platform, Text, Button } from 'react-native';
+import { CameraType, Camera } from 'react-native-camera-kit'
+import { useTranslation } from 'react-i18next'; 
+export default function BarcodeScannerScreen({ navigation }) {
+    const [scanned, setScanned] = useState(false);
+    const [ssid, setSsid] = useState('');
+    const [password, setPassword] = useState('');
+    const [deviceType, setdeviceType] = useState("");
+    const { t, i18n } = useTranslation();
 
-const BarcodeScannerScreen = () => {
+    const [barcodeValue, setBarcodeValue] = useState('');
+
+
+    useEffect(() => {
+
+
+        requestPermission();
+    }, []);
+
+    const onReadCode = (event) => {
+        // Alert.alert('QR Kod Okundu');
+        console.log(event);
+        setBarcodeValue(event.nativeEvent.codeStringValue);
+        var splitParts = event.nativeEvent.codeStringValue.split('-');
+
+        setdeviceType(splitParts[0]);//DeviceType
+        setSsid(splitParts[1]); //SSID
+        setPassword(splitParts[2]); //Password
+
+        setScanned(true); // kod okundu, tekrar okutmayı önlemek için
+        navigation.navigate("WifiSettings", { deviceType: deviceType, devicessid: ssid, devicepassword: password });
+
+    };
+
+    const requestPermission = async () => {
+        if (Platform.OS === 'android') {
+            const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.CAMERA,
+                {
+                    title: t("CameraPermisionTitle"),
+                    message: t("CameraPermisionMessage"),
+                    buttonNeutral: t("AskMeLater"),
+                    buttonNegative: t("Cancel"),
+                    buttonPositive: t("OK")
+                }
+            );
+            setIsPermitted(granted === PermissionsAndroid.RESULTS.GRANTED);
+        } else {
+            setIsPermitted(true);
+        }
+    };
+
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Welcome to Home!</Text>
+        <View>
+            <Camera
+                // Barcode props
+                scanBarcode={true}
+                onReadCode={(event) => onReadCode(event)} // optional
+                showFrame={true} // (default false) optional, show frame with transparent layer (qr code or barcode will be read on this area ONLY), start animation for scanner, that stops when a code has been found. Frame always at center of the screen
+                laserColor='red' // (default red) optional, color of laser in scanner frame
+                frameColor='white' // (default white) optional, color of border of scanner frame
+                style={{ width: '100%', height: '80%' }}
+            />
+            <Text>{barcodeValue}</Text>
+            <Button
+                title={t("SettingManuel")}
+                onPress={() => {
+                    navigation.navigate("ManuelSetting");
+                }}></Button>
+            
         </View>
     );
-};
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-    },
-});
-
-export default BarcodeScannerScreen;
+}

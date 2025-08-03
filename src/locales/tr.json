@@ -52,5 +52,7 @@
   "passwordmustbematch": "Şifreler eşleşmeli",
   "confirmPasswordRequired": "Şifre onayı gerekli",
   "ResetPasswordSendCheckMail":"Şifre sıfırlama bağlantısı e-posta adresine gönderildi. Gelen kutunu kontrol et.",
-  "SendComplated":"Gönderildi"
+  "SendComplated":"Gönderildi",
+  "SmartDevice1":"Akıllı Saksı",
+  "SmartVase2Multi":"2 Pompalı Çiçek Sulama Sistemi"
 }
