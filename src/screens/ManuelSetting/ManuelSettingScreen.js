@@ -22,7 +22,7 @@ import { Button } from 'react-native-paper';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const InputField = ({ label, value, onChange, placeholder, secure }) => {
+const InputField = ({ label, value, onChange, placeholder, secure,readOnly }) => {
     return (
         <View style={styles.fieldWrapper}>
             <Text style={styles.fieldLabel}>{label}</Text>
@@ -35,6 +35,8 @@ const InputField = ({ label, value, onChange, placeholder, secure }) => {
                     style={styles.textInput}
                     autoCapitalize="none"
                     autoCorrect={false}
+                    readOnly={readOnly}
+                    
                 />
             </View>
         </View>
@@ -136,13 +138,15 @@ const ManuelSetting = ({ navigation, route }) => {
                                     value={wifiName}
                                     onChange={setWifiName}
                                     placeholder={t("WFSettingsSSID")}
+                                    readOnly={true}
                                 />
                                 <InputField
                                     label={t("DeviceWifiPassword")}
                                     value={wifiPassword}
                                     onChange={setWifiPassword}
                                     secure
-                                    placeholder="ornek@site.com"
+                                    placeholder=""
+                                    readOnly={true}
                                 />
 
                                 <View>

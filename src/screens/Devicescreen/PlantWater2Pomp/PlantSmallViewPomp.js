@@ -1,0 +1,162 @@
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import Config from 'react-native-config';
+import i18n from '../../../i18n';
+import { useTranslation } from 'react-i18next';
+import mqtt from 'mqtt';
+
+import { getMoistureIcon, interpolateColor, getTemperatureColor, getSoilMoistureLevel } from './iconfunctions';
+
+
+
+const PlantSmallViewPomp = ({ plantName, deviceid }) => {
+
+    const { t, i18n } = useTranslation();
+
+    const [message, setMessage] = useState(t("Connecting"));
+
+    const [client, setClient] = useState(null);
+
+    const [temperature, setTemperature] = useState(0);
+    const [airHumidity, setAirHumidity] = useState(0);
+    const [soil_moisture, setSoilMoisture] = useState(0);
+    const [icon, seticon] = useState(null);
+    const [connected, setConnected] = useState(false);
+
+    //const [soilMoistureLevel, setsoilMoistureLevel] = useState('normal'); // 'nemli', 'normal', 'kuru'
+    /*
+        const connectMqtt = () => {
+    
+            if (Config.mqttwebsocket === undefined) {
+                setMessage("config Cannot read");
+                return;
+            }
+            var topic = deviceid + '/sensorData';
+       
+            console.log(Config.mqttwebsocket);
+            console.log(Config.mqttWebSocketport);
+            const client = mqtt.connect(Config.mqttwebsocket, {
+                port: Config.mqttWebSocketport,
+                clientId: 'rn_client_' + Math.random().toString(16).substr(2, 8),
+                username: Config.mqtt_username,    // eğer auth varsa
+                password: Config.mqtt_password,    // eğer auth varsa
+                rejectUnauthorized: false, // self-signed cert için
+            });
+    
+            client.on('connect', () => {
+                console.log('WSS MQTT bağlandı');
+                setMessage(t("Connected"));
+                setConnected(true);
+                setClient(client);
+                client.subscribe(topic);
+            });
+    
+            client.on('message', (topic, msg) => {
+    
+                if (topic === topic) {
+                    var jsonData = JSON.parse(msg.toString());
+                    setSoilMoisture(jsonData.soil_moisture);
+                    setTemperature(jsonData.temperature);
+                    setAirHumidity(jsonData.humidity);
+    
+                    var icon_ = getMoistureIcon(getSoilMoistureLevel(jsonData.soil_moisture));
+                    seticon(icon_);
+                }
+            });
+    
+            client.on('error', err => {
+                console.log('MQTT WSS HATA:', err);
+                setMessage(t("ConnectionError"), err.message);
+                setConnected(false);
+            });
+    
+            return () => {
+                client.end();
+            }; 
+        }
+    */
+    useEffect(() => {
+        // connectMqtt();
+
+
+    }, []);
+
+    return (
+        <View style={{ paddingHorizontal: 0, marginHorizontal: 0 }}>
+            <View style={styles.card}>
+                {/* Sol */}
+                <View style={styles.leftColumn}>
+                    <Text style={styles.plantName}>{plantName}</Text>
+                </View>
+                <View style={styles.middleColumn}>
+                    <MaterialDesignIcons name='engine-outline' size={50} color='#1de42aff' />
+
+                </View>
+
+                {/* Orta - sıcaklık */}
+                <View style={styles.middleColumn}>
+                    <MaterialDesignIcons name='engine-outline' size={50} color='#1de42aff' />
+                </View> 
+            </View>
+
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    card: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        elevation: 3,
+        justifyContent: 'space-between',
+        width: '100%', // kart da tüm genişliği kapsasın
+        marginVertical: 0, // dış sarmal zaten margin veriyor
+    },
+    leftColumn: {
+        flex: 1,
+        alignItems: 'flex-start',
+        gap: 4,
+    },
+
+    middleColumn: {
+        alignItems: 'center',
+        marginHorizontal: 10,
+    },
+    rightColumn: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    statusLabel: {
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    plantName: {
+        fontSize: 18,
+        fontWeight: '600',
+        marginTop: 4,
+        color: '#333',
+    },
+    gaugeLabel: {
+        fontSize: 14,
+        marginBottom: 6,
+        color: '#555',
+    },
+    percentageText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#00bcd4',
+    },
+    temperatureText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#ff7043',
+        marginTop: 4,
+    },
+});
+
+export default PlantSmallViewPomp;

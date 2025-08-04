@@ -33,7 +33,11 @@ export default function BarcodeScannerScreen({ navigation }) {
         setPassword(splitParts[2]); //Password
 
         setScanned(true); // kod okundu, tekrar okutmayı önlemek için
-        navigation.navigate("WifiSettings", { deviceType: deviceType, devicessid: ssid, devicepassword: password });
+        navigation.navigate("WifiSettings", {
+            deviceType: deviceType,
+            devicessid: ssid,
+            devicepassword: password
+        });
 
     };
 

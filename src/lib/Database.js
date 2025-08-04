@@ -1,4 +1,5 @@
 import SQLite from 'react-native-sqlite-storage';
+import { string } from 'yup';
 
 
 SQLite.enablePromise(true);
@@ -9,19 +10,22 @@ class Database {
     }
 
     async init() {
-        if (this.db) return;
-        this.db = await SQLite.openDatabase({ name: 'device.db', location: 'default' });
 
-        await this.db.executeSql(`
-      'CREATE TABLE IF NOT EXISTS 
-        Device (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            deviceid TEXT, 
-            devicename TEXT,
-            devicetype TEXT, 
-            wifiName TEXT
-        );
-    `);
+        if (this.db == null) {
+            this.db = await SQLite.openDatabase({ name: 'device.db', location: 'default' });
+
+        }
+
+        const sql = `CREATE TABLE IF NOT EXISTS Device (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    deviceid TEXT,
+                    devicename TEXT,
+                    devicetype TEXT,
+                    wifiName TEXT
+                    );`;
+        console.log(sql);
+
+        await this.db.executeSql(sql);
     }
 
     async getDeviceList() {
@@ -35,7 +39,9 @@ class Database {
     }
 
     async AddDevice(deviceid, devicename, devicetype, wifiName) {
-        await this.db.executeSql('INSERT INTO Device (deviceid, devicename, devicetype, wifiName) VALUES (?, ?,?,?)', [deviceid, 0], [devicename, 1], [devicetype, 2], [wifiName, 3]);
+        const sql = `INSERT INTO Device (deviceid, devicename, devicetype, wifiName) VALUES ('${deviceid}', '${devicename}','${devicetype}','${wifiName}')`;
+        
+        await this.db.executeSql(sql);
     }
 
     async DeleteDevice(id) {

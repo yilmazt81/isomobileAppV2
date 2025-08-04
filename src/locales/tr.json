@@ -59,6 +59,7 @@
   "devicetype":"Cihaz Türü",
   "DeviceWifiName":"Cihaz Wifi Adi",
   "DeviceWifiPassword":"Cihaz Wifi Şifresi",
-  "Next":"İleri"
+  "Next":"İleri",
+  "Delete":"Sil"
   
 }

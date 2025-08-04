@@ -15,18 +15,20 @@ import { SendParams } from '../../lib/SendConfigToDevice';
 
 import LinearGradient from 'react-native-linear-gradient';
 import Database from '../../lib/Database';
+import WifiScannerModal from '../WifiScanner/WifiScannerModal';
+import { Button, PaperProvider } from 'react-native-paper';
 
 const WifiSettingsScreen = ({ navigation }) => {
     const { t, i18n } = useTranslation();
     const route = useRoute();
-    const deviceType = route.params?.deviceType || 'V1'; // Varsayılan değer olarak 'V1' kullanılıyor
+    const deviceType = route.params?.deviceType; // Varsayılan değer olarak 'V1' kullanılıyor
     const { devicessid = '', devicepassword = '' } = route.params || {};
     const { defaultSsid = '' } = route.params || {};
 
 
     const [ssidDevice] = useState(devicessid);
     const [passwordDevice] = useState(devicepassword);
-    const [deviceName, setDeviceName] = useState(deviceType); // Yeni state değişkeni
+    const [deviceName, setDeviceName] = useState(); // Yeni state değişkeni
 
     const [smartdeviceId, setsmartdeviceId] = useState('');
     const [errorMessage, setErrorMessage] = useState(null);
@@ -35,6 +37,7 @@ const WifiSettingsScreen = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [deviceWifiConnected, setDeviceWifiConnected] = useState(false);
+    const [showwifiModal, setshowwifiModal] = useState(false);
 
     useEffect(() => {
 
@@ -42,10 +45,7 @@ const WifiSettingsScreen = ({ navigation }) => {
 
     }, []);
 
-    const handleConnect = () => {
-        // Burada WiFi bilgilerini kaydetme ya da gönderme işlemleri yapılabilir
-        // Alert.alert('Bağlantı', `SSID: ${ssid}\nŞifre: ${password}`);
-    };
+
     const requestPermissions = async () => {
         if (Platform.OS === 'android') {
             try {
@@ -76,17 +76,22 @@ const WifiSettingsScreen = ({ navigation }) => {
 
         //setDeviceWifiConnected(true);
         //
-        
-        RegisterDevice(tmpdeviceId);
-        /*
+
+
         WifiManager.connectToProtectedSSID(ssidDevice, passwordDevice, false)
-            .then(() => {
+            .then(async () => {
                 //Alert.alert('Bağlantı Başarılı', `WiFi ağına bağlanıldı: ${ssidDevice}`);   
 
                 setDeviceWifiConnected(true);
-                RegisterDevice(tmpdeviceId);
-                SendParams(ssid, password, tmpdeviceId)
-                //Config.mqtt_server = 'mqtts://m6e105d6.ala.eu-central-1.emqxsl.com';
+                await RegisterDevice(tmpdeviceId);
+                await SendParams(ssid, password, tmpdeviceId)
+
+                //swich device to standar wifi or 3G
+                WifiManager.disconnect().then(async () => {
+                    debugger;
+                    navigation.navigate("Dashboard");
+                }) 
+
             })
             .catch((error) => {
                 console.log(error);
@@ -94,7 +99,7 @@ const WifiSettingsScreen = ({ navigation }) => {
                 setDeviceWifiConnected(false);
                 //  Alert.alert('Bağlantı Hatası', 'WiFi ağına bağlanılamadı.');
             });
-            */
+
     };
 
 
@@ -127,10 +132,9 @@ const WifiSettingsScreen = ({ navigation }) => {
         
                   });
                   */
-                 debugger;
-                //deviceid, devicename, devicetype, wifiName
-                Database.AddDevice(newdeviceid, deviceName, deviceType, ssid);
-                navigation.navigate("Home");
+
+                await Database.init();
+                await Database.AddDevice(newdeviceid, deviceName, deviceType, ssid);
 
                 //alert('Kayıt başarılı!');
                 // Kayıt başarılı olduktan sonra NEXT ekranına yönlendir
@@ -147,79 +151,110 @@ const WifiSettingsScreen = ({ navigation }) => {
     };
 
 
+    const selectedssid = (selectedssid) => {
+        setSsid(selectedssid);
+        setshowwifiModal(false);
+
+        // Burada WiFi bilgilerini kaydetme ya da gönderme işlemleri yapılabilir
+        // Alert.alert('Bağlantı', `SSID: ${ssid}\nŞifre: ${password}`);
+    };
+
+    const openmodalWindow = () => {
+
+        setshowwifiModal(true);
+    }
     return (
-        <LinearGradient colors={['#090979', '#00D4FF', '#020024']} style={styles.container}>
-            <View style={styles.card}>
-                <Text style={styles.title}>{t("WifiSettings")}</Text>
-                <Text style={styles.label}>{t("WFSettingsSSID")}</Text>
-                <View style={styles.passwordContainer}>
-                    <TextInput
-                        style={[styles.input, { flex: 1 }]}
-                        placeholder={t("WFSettingsSSID")}
-                        value={ssid}
-                        onChangeText={setSsid}
-                    />
-                    <TouchableOpacity onPress={() => navigation.navigate("WifiScanner")}>
-                        <MaterialDesignIcons
-                            name='wifi'
-                            size={24}
-                            color="gray"
-                            style={{ marginLeft: 8 }}
+
+        <PaperProvider>
+            <LinearGradient colors={['#090979', '#00D4FF', '#020024']} style={styles.container}>
+
+
+                <WifiScannerModal showmodal={showwifiModal}
+                    onSubmit={(e) => selectedssid(e)}
+                    onClose={() => setshowwifiModal(false)}></WifiScannerModal>
+
+
+                <View style={styles.card}>
+
+
+                    <Text style={styles.title}>{t("WifiSettings")}</Text>
+                    <Text style={styles.label}>{t("WFSettingsSSID")}</Text>
+                    <View style={styles.passwordContainer}>
+                        <TextInput
+                            style={[styles.input, { flex: 1 }]}
+                            placeholder={t("WFSettingsSSID")}
+                            value={ssid}
+                            onChangeText={setSsid}
                         />
+                        <TouchableOpacity onPress={() => navigation.navigate('WifiScanner', {
+                            onReturn: (data) => {
+                           
+                                setSsid(data.ssid);
+                                // gelen veriyi işle
+                            },
+                        })}>
+                            <MaterialDesignIcons
+                                name='wifi'
+                                size={24}
+                                color="gray"
+                                style={{ marginLeft: 8 }}
+                            />
+                        </TouchableOpacity>
+
+                    </View>
+                    <Text style={styles.label}>{t("password")}</Text>
+
+                    <View style={styles.passwordContainer}>
+                        <TextInput
+                            style={[styles.input, { flex: 1 }]}
+                            placeholder={t("password")}
+                            secureTextEntry={!showPassword}
+                            value={password}
+                            onChangeText={setPassword}
+                        />
+
+
+
+                        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                            <MaterialDesignIcons
+                                name={showPassword ? 'eye' : 'eye-off'}
+                                size={24}
+                                color="gray"
+                                style={{ marginLeft: 8 }}
+                            />
+                        </TouchableOpacity>
+                    </View>
+                    <View>
+
+                        <TextInput value={smartdeviceId}></TextInput>
+                    </View>
+
+                    <View>
+                        <Text style={styles.label}>{t("DeviceName")}</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder={t("DeviceName")}
+                            value={deviceName}
+                            onChangeText={setDeviceName}
+                        />
+                    </View>
+                    <ErrorMessage message={errorMessage}></ErrorMessage>
+                    {deviceWifiConnected &&
+                        (
+                            <LottieView source={require('../assets/Animation_Connection.json')}
+                                autoPlay loop style={{ width: 150, height: 150, alignSelf: 'center' }} />
+
+                        )}
+
+
+                    <TouchableOpacity style={styles.button} onPress={connectToWifi}>
+                        <Text style={styles.buttonText}>{t("SetSettings")}</Text>
                     </TouchableOpacity>
 
                 </View>
-                <Text style={styles.label}>{t("password")}</Text>
 
-                <View style={styles.passwordContainer}>
-                    <TextInput
-                        style={[styles.input, { flex: 1 }]}
-                        placeholder={t("password")}
-                        secureTextEntry={!showPassword}
-                        value={password}
-                        onChangeText={setPassword}
-                    />
+            </LinearGradient></PaperProvider >
 
-
-
-                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                        <MaterialDesignIcons
-                            name={showPassword ? 'eye' : 'eye-off'}
-                            size={24}
-                            color="gray"
-                            style={{ marginLeft: 8 }}
-                        />
-                    </TouchableOpacity>
-                </View>
-                <View>
-
-                    <TextInput value={smartdeviceId}></TextInput>
-                </View>
-
-                <View>
-                    <Text style={styles.label}>{t("DeviceName")}</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder={t("DeviceName")}
-                        value={deviceName}
-                        onChangeText={setDeviceName}
-                    />
-                </View>
-                <ErrorMessage message={errorMessage}></ErrorMessage>
-                {deviceWifiConnected &&
-                    (
-                        <LottieView source={require('../assets/Animation_Connection.json')}
-                            autoPlay loop style={{ width: 150, height: 150, alignSelf: 'center' }} />
-
-                    )}
-
-
-                <TouchableOpacity style={styles.button} onPress={connectToWifi}>
-                    <Text style={styles.buttonText}>{t("SetSettings")}</Text>
-                </TouchableOpacity>
-
-            </View>
-        </LinearGradient>
     );
 };
 

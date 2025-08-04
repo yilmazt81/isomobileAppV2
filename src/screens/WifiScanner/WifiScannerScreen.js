@@ -13,12 +13,15 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import WifiManager from 'react-native-wifi-reborn';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
+import { useRoute } from '@react-navigation/native';
 
+import LinearGradient from 'react-native-linear-gradient';
 const WifiScannerScreen = () => {
   const [wifiList, setWifiList] = useState([]);
   const navigation = useNavigation();
   const [error, setError] = useState(null);
-
+  const route = useRoute();
+  const { onReturn } = route.params || {};
   // Gerekli izinleri kullanıcıdan iste
   const requestLocationPermission = async () => {
     if (Platform.OS === 'android') {
@@ -71,39 +74,43 @@ const WifiScannerScreen = () => {
 
   // Bir SSID seçildiğinde ayar ekranına yönlendir
   const handleSelect = (ssid) => {
-    navigation.navigate('WifiSettings', {
-      defaultSsid: ssid,
-    });
+    if (onReturn) {
+      onReturn({ ssid }); // veri gönder
+    }
+    navigation.goBack();
   };
 
   return (
-    <View style={styles.container}>
-      <Button title="Yeniden Tara" onPress={loadWifiList} />
 
-      {error && <Text style={styles.error}>{error}</Text>}
-      <FlatList
-        data={wifiList}
-        keyExtractor={(item, index) => item.BSSID || index.toString()}
-        renderItem={({ item }) => (
+    <LinearGradient colors={['#090979', '#00D4FF', '#020024']} style={styles.container}>
 
-          <View style={styles.row}>
-            <TouchableOpacity style={styles.item} onPress={() => handleSelect(item.SSID)}>
-              <View>
-                <MaterialDesignIcons
-                  name={getSignalIcon(item.level)}
-                  size={24}
-                  color="#333"
-                  style={styles.icon}
-                />
-                <Text style={styles.ssid}>{item.SSID}</Text>
+      <View style={styles.card}>
+        <Button title="Yeniden Tara" onPress={loadWifiList} />
 
-              </View>
+        {error && <Text style={styles.error}>{error}</Text>}
+        <FlatList
+          data={wifiList}
+          keyExtractor={(item, index) => item.BSSID || index.toString()}
+          renderItem={({ item }) => (
 
-            </TouchableOpacity>
-          </View>
-        )}
-      />
-    </View>
+            <View style={styles.row}>
+              <TouchableOpacity style={styles.item} onPress={() => handleSelect(item.SSID)}>
+                <View>
+                  <MaterialDesignIcons
+                    name={getSignalIcon(item.level)}
+                    size={24}
+                    color="#333"
+                    style={styles.icon}
+                  />
+                  <Text style={styles.ssid}>{item.SSID}</Text>
+
+                </View>
+
+              </TouchableOpacity>
+            </View>
+          )}
+        /></View>
+    </LinearGradient >
   );
 };
 
@@ -111,6 +118,16 @@ export default WifiScannerScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+    card: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 10,
+  },
   item: {
     padding: 12,
     borderBottomWidth: 1,

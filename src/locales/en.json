@@ -63,5 +63,7 @@
   "registerdevice": "Select Device",
   "devicetype": "Device Type",
   "DeviceWifiName": "Device Wifi Name",
-  "DeviceWifiPassword": "Device Wifi Password"
+  "DeviceWifiPassword": "Device Wifi Password",
+  "Next": "Next",
+  "Delete":"Delete"
 }
