@@ -33,10 +33,7 @@ const HomeScreen = ({ navigation }) => {
     const addDeviceToCloud = async () => {
         var dbdeviceList = await Database.getDeviceList();
 
-
-
         try {
-
 
             firestore().settings({ persistence: true });
 
@@ -131,7 +128,15 @@ const HomeScreen = ({ navigation }) => {
     }
 
     const handleDelete = async (device) => {
-        Alert.alert('Test', 'Bu ekran yüklendi, alert çalışıyor mu?');
+        debugger;
+
+
+        await firestore()
+            .collection('Device')
+            .doc(device.id)
+            .delete();
+        getDeviceList();
+        //Alert.alert('Test', 'Bu ekran yüklendi, alert çalışıyor mu?', device.id);
         /*   await Database.DeleteDevice(device.id);
            setDeviceList((prev) => prev.filter((d) => d.id !== device.id));
            */

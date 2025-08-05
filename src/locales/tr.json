@@ -60,6 +60,7 @@
   "DeviceWifiName":"Cihaz Wifi Adi",
   "DeviceWifiPassword":"Cihaz Wifi Şifresi",
   "Next":"İleri",
-  "Delete":"Sil"
+  "Delete":"Sil",
+  "DeleteDeviceMessage":"Bu cihazı silmek istediğine emin misin?"
   
 }

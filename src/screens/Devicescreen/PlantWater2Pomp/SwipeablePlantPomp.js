@@ -34,12 +34,12 @@ const renderDeleteAction = (onDelete, t) => {
             Alert.alert(
               t ? t('Sil') : 'Sil',
               t
-                ? t('Bu cihazı silmek istediğine emin misin?')
+                ? t('DeleteDeviceMessage')
                 : 'Bu cihazı silmek istediğine emin misin?',
               [
-                { text: t ? t('İptal') : 'İptal', style: 'cancel' },
+                { text: t ? t('Cancel') : 'İptal', style: 'cancel' },
                 {
-                  text: t ? t('Sil') : 'Sil',
+                  text: t ? t('Delete') : 'Sil',
                   style: 'destructive',
                   onPress: onDelete,
                 },
