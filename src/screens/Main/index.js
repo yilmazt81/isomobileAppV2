@@ -17,6 +17,7 @@ import SwipeablePlantV1 from '../Devicescreen/Plantvase/SwipeablePlantV1';
 import SwipeableItem from '../../companent/SwipeableItem';
 
 
+
 const HomeScreen = ({ navigation }) => {
 
     const [deviceList, setDeviceList] = useState([]);
@@ -26,16 +27,26 @@ const HomeScreen = ({ navigation }) => {
     const { t, i18n } = useTranslation();
 
     const { isWifi, isConnected, hasInternet } = useWifiInternetStatus();
+
+
+
     const addDeviceToCloud = async () => {
         var dbdeviceList = await Database.getDeviceList();
 
-        for (let index = 0; index < dbdeviceList.length; index++) {
-            const element = dbdeviceList[index];
-            debugger;
-            await firestore()
-                .settings({
-                    persistence: true // <-- Bu satır kalıcılığı etkinleştirir
-                }).collection('Device').doc(newId).set({
+
+
+        try {
+
+
+            firestore().settings({ persistence: true });
+
+            const user = auth().currentUser;
+
+            for (let element of dbdeviceList) {
+                const newId = firestore().collection('Device').doc().id;
+                const ssid = "UNKNOWN"; // veya WifiManager'dan al
+
+                await firestore().collection('Device').doc(newId).set({
                     devicename: element.devicename,
                     devicetype: element.devicetype,
                     userid: user.uid,
@@ -44,10 +55,17 @@ const HomeScreen = ({ navigation }) => {
                     soilMoistureLevel: "",
                     airHumidity: 90,
                     temperature: 0,
-                    wifiName: ssid,
+                    wifiName: element.wifiName,
                 });
 
-            await Database.DeleteDevice(element.id);
+                await Database.DeleteDevice(element.id);
+            }
+
+        } catch (error) {
+            setError(error.message);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
         }
     }
     const getDeviceList = async () => {

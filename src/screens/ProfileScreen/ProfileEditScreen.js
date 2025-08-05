@@ -9,6 +9,7 @@ import {
   Image,
   StyleSheet,
   Alert,
+  KeyboardAvoidingView
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
@@ -17,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 const ProfileEditScreen = ({ navigation, user }) => {
   // route.params.user ile önceden yüklenmiş user objesini al
 
-const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [avatar, setAvatar] = useState(user?.avatar);
   const [name, setName] = useState(user?.name);
   const [username, setUsername] = useState(user?.username);
@@ -55,61 +56,65 @@ const { t, i18n } = useTranslation();
 
   return (
     <View style={styles.card}>
-      {/* Avatar */}
-      <TouchableOpacity style={styles.avatarWrapper} onPress={pickImage}>
-        {avatar ? (
-          <Image source={{ uri: (avatar == null ? require('../assets/useravatar.png') : avatar) }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatar, styles.avatarPlaceholder]}>
-            <MaterialDesignIcons name="person-outline" size={50} color="#aaa" />
-          </View>
-        )}
-        <View style={styles.cameraIcon}>
-          <MaterialDesignIcons name="camera" size={18} color="#fff" />
-        </View>
-      </TouchableOpacity>
-
-      {/* İsim */}
-      <Text style={styles.label}>Ad Soyad</Text>
-      <TextInput
-        style={styles.input}
-        value={name}
-        onChangeText={setName}
-        placeholder="Ad Soyad"
-      />
-
-
-      <Text style={styles.title}>{t("welcome")}</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder={t("email")}
-        placeholderTextColor="#aaa"
-        value={email}
-        onChangeText={setemail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      {/* Kullanıcı Adı */}
-      <Text style={styles.label}>Kullanıcı Adı</Text>
-      <TextInput
-        style={styles.input}
-        value={username}
-        onChangeText={setUsername}
-        placeholder="username"
-        autoCapitalize="none"
-      />
-
-
-
-      {/* Kaydet */}
-      <TouchableOpacity
-        style={styles.saveButton}
-        activeOpacity={0.8}
-        onPress={handleSave}
+      <KeyboardAvoidingView
+        behavior={Platform.select({ ios: 'padding', android: undefined })}
+        style={{ flex: 1 }}
       >
-        <Text style={styles.saveText}>Kaydet</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.avatarWrapper} onPress={pickImage}>
+          {avatar ? (
+            <Image source={{ uri: (avatar == null ? require('../assets/useravatar.png') : avatar) }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatar, styles.avatarPlaceholder]}>
+              <MaterialDesignIcons name="person-outline" size={50} color="#aaa" />
+            </View>
+          )}
+          <View style={styles.cameraIcon}>
+            <MaterialDesignIcons name="camera" size={18} color="#fff" />
+          </View>
+        </TouchableOpacity>
+
+        {/* İsim */}
+        <Text style={styles.label}>Ad Soyad</Text>
+        <TextInput
+          style={styles.input}
+          value={name}
+          onChangeText={setName}
+          placeholder="Ad Soyad"
+        />
+
+
+        <Text style={styles.title}>{t("welcome")}</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder={t("email")}
+          placeholderTextColor="#aaa"
+          value={email}
+          onChangeText={setemail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        {/* Kullanıcı Adı */}
+        <Text style={styles.label}>Kullanıcı Adı</Text>
+        <TextInput
+          style={styles.input}
+          value={username}
+          onChangeText={setUsername}
+          placeholder="username"
+          autoCapitalize="none"
+        />
+
+
+
+        {/* Kaydet */}
+        <TouchableOpacity
+          style={styles.saveButton}
+          activeOpacity={0.8}
+          onPress={handleSave}
+        >
+          <Text style={styles.saveText}>Kaydet</Text>
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
     </View>
 
   );

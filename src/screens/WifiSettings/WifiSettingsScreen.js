@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, PermissionsAndroid, Platform, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, PermissionsAndroid, Platform, StyleSheet, Alert }
+    from 'react-native';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import WifiManager from "react-native-wifi-reborn";
 import { useRoute } from '@react-navigation/native';
@@ -10,7 +11,6 @@ import LottieView from 'lottie-react-native';
 import Config from 'react-native-config';
 
 import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
 import { SendParams } from '../../lib/SendConfigToDevice';
 
 import LinearGradient from 'react-native-linear-gradient';
@@ -52,7 +52,9 @@ const WifiSettingsScreen = ({ navigation }) => {
                 const granted = await PermissionsAndroid.requestMultiple([
                     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
                     PermissionsAndroid.PERMISSIONS.ACCESS_WIFI_STATE,
-                    PermissionsAndroid.PERMISSIONS.CHANGE_WIFI_STATE
+                    PermissionsAndroid.PERMISSIONS.CHANGE_WIFI_STATE,
+                    PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+
                 ]);
                 console.log('Permissions:', granted);
             } catch (err) {
@@ -72,33 +74,53 @@ const WifiSettingsScreen = ({ navigation }) => {
 
     const connectToWifi = async () => {
         var tmpdeviceId = generateUUID(10);
-
-
+        setErrorMessage(null);
+        // Alert.alert('Bağlantı', `WiFi ağına bağlanılıyor: ${ssidDevice} ${passwordDevice} `);
         //setDeviceWifiConnected(true);
-        //
 
+         await RegisterDevice(tmpdeviceId);
+          navigation.navigate("Dashboard");
+       /* try {
+            //WifiManager.setInternetOptional(true)
+            await WifiManager.connectToProtectedSSID(ssidDevice, passwordDevice, false, false);
+            setTimeout(async () => {
+                try {
+                    const connectedSSID = await WifiManager.getCurrentWifiSSID();
+                    console.log('Bağlı SSID:', connectedSSID);
+                    if (connectedSSID === ssidDevice) {
+                        setDeviceWifiConnected(true);
+                        //Alert.alert('Bağlantı Başarılı', `WiFi ağına bağlanıldı: ${ssidDevice}`);
 
-        WifiManager.connectToProtectedSSID(ssidDevice, passwordDevice, false)
-            .then(async () => {
-                //Alert.alert('Bağlantı Başarılı', `WiFi ağına bağlanıldı: ${ssidDevice}`);   
+                        await RegisterDevice(tmpdeviceId);
+                        await SendParams(ssid, password, tmpdeviceId);
+                        Alert.alert('Bağlantı Başarılı send Param Yaptı');
+                        //swich device to standar wifi or 3G
+                        WifiManager.disconnect().then(async () => {
 
-                setDeviceWifiConnected(true);
-                await RegisterDevice(tmpdeviceId);
-                await SendParams(ssid, password, tmpdeviceId)
+                            navigation.navigate("Dashboard");
+                        }).catch((error) => {
+                            console.log('Bağlantı kesme hatası:', error);
+                            navigation.navigate("Dashboard");
+                        });
+                    } else {
+                        console.log('Bağlantı başarısız ya da farklı ağa bağlı');
+                        setErrorMessage('Bağlantı başarısız ya da farklı ağa bağlı');
+                        setDeviceWifiConnected(false);
+                    }
+                } catch (e) {
+                    console.log(error);
+                    setErrorMessage(error.message);
+                    setDeviceWifiConnected(false);
+                    Alert.alert('Bağlantı Hatası', 'WiFi ağına bağlanılamadı.');
+                }
+            }, 5000);
 
-                //swich device to standar wifi or 3G
-                WifiManager.disconnect().then(async () => {
-                    debugger;
-                    navigation.navigate("Dashboard");
-                }) 
-
-            })
-            .catch((error) => {
-                console.log(error);
-                setErrorMessage(error.message);
-                setDeviceWifiConnected(false);
-                //  Alert.alert('Bağlantı Hatası', 'WiFi ağına bağlanılamadı.');
-            });
+        } catch (error) {
+            console.log(error);
+            setErrorMessage(error.message);
+            setDeviceWifiConnected(false);
+        }
+        */
 
     };
 
@@ -188,7 +210,7 @@ const WifiSettingsScreen = ({ navigation }) => {
                         />
                         <TouchableOpacity onPress={() => navigation.navigate('WifiScanner', {
                             onReturn: (data) => {
-                           
+
                                 setSsid(data.ssid);
                                 // gelen veriyi işle
                             },
