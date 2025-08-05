@@ -1,11 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-
+import {
+    View, Text, StyleSheet,
+    
+    Image,
+    TouchableOpacity,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import ProfileEditScreen from './ProfileEditScreen';
 const ProfileScreen = () => {
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Welcome to Home!</Text>
-        </View>
+        <LinearGradient colors={['#090979', '#00D4FF', '#020024']}
+            style={styles.container}>            
+            <ProfileEditScreen></ProfileEditScreen>
+        </LinearGradient>
     );
 };
 

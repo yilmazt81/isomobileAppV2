@@ -14,6 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import WifiManager from 'react-native-wifi-reborn';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import { useRoute } from '@react-navigation/native';
+import ErrorMessage from '../../companent/ErrorMessage';
 
 import LinearGradient from 'react-native-linear-gradient';
 const WifiScannerScreen = () => {
@@ -43,6 +44,7 @@ const WifiScannerScreen = () => {
   const loadWifiList = async () => {
     const hasPermission = await requestLocationPermission();
     if (!hasPermission) {
+      setError('Konum izni verilmedi.');
       console.warn('Konum izni verilmedi.');
       return;
     }
@@ -55,6 +57,7 @@ const WifiScannerScreen = () => {
         setWifiList(sortedList);
       })
       .catch((error) => {
+        setError(error.message);
         console.error('WiFi listesi alınamadı:', error);
       });
   };
@@ -87,7 +90,7 @@ const WifiScannerScreen = () => {
       <View style={styles.card}>
         <Button title="Yeniden Tara" onPress={loadWifiList} />
 
-        {error && <Text style={styles.error}>{error}</Text>}
+        {error && <ErrorMessage style={styles.error}>{error}</ErrorMessage>}
         <FlatList
           data={wifiList}
           keyExtractor={(item, index) => item.BSSID || index.toString()}
@@ -118,7 +121,7 @@ export default WifiScannerScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-    card: {
+  card: {
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 24,

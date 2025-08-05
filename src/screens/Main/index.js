@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
@@ -26,7 +26,30 @@ const HomeScreen = ({ navigation }) => {
     const { t, i18n } = useTranslation();
 
     const { isWifi, isConnected, hasInternet } = useWifiInternetStatus();
+    const addDeviceToCloud = async () => {
+        var dbdeviceList = await Database.getDeviceList();
 
+        for (let index = 0; index < dbdeviceList.length; index++) {
+            const element = dbdeviceList[index];
+            debugger;
+            await firestore()
+                .settings({
+                    persistence: true // <-- Bu satır kalıcılığı etkinleştirir
+                }).collection('Device').doc(newId).set({
+                    devicename: element.devicename,
+                    devicetype: element.devicetype,
+                    userid: user.uid,
+                    deviceid: element.deviceid,
+                    createdAt: firestore.FieldValue.serverTimestamp(),
+                    soilMoistureLevel: "",
+                    airHumidity: 90,
+                    temperature: 0,
+                    wifiName: ssid,
+                });
+
+            await Database.DeleteDevice(element.id);
+        }
+    }
     const getDeviceList = async () => {
         try {
             setError(null);
@@ -38,44 +61,14 @@ const HomeScreen = ({ navigation }) => {
             }
             await Database.init();
 
+            await addDeviceToCloud();
 
-            if (isWifi && hasInternet)//add to firebase 
-            {
-                var dbdeviceList = await Database.getDeviceList();
+            const usersCollection = await firestore().collection('Device').where('userid', 'in', [user.uid]).get()
+                .then((querySnapshot) => {
 
-                for (let index = 0; index < dbdeviceList.length; index++) {
-                    const element = dbdeviceList[index];
-                    debugger;
-                    await firestore()
-                        .settings({
-                            persistence: true // <-- Bu satır kalıcılığı etkinleştirir
-                        }).collection('Device').doc(newId).set({
-                            devicename: element.devicename,
-                            devicetype: element.devicetype,
-                            userid: user.uid,
-                            deviceid: element.deviceid,
-                            createdAt: firestore.FieldValue.serverTimestamp(),
-                            soilMoistureLevel: "",
-                            airHumidity: 90,
-                            temperature: 0,
-                            wifiName: ssid,
-                        });
+                    setDeviceList(documents => querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
-                    await Database.DeleteDevice(element.id);
-                }
-
-                const usersCollection = await firestore().collection('Device').where('userid', 'in', [user.uid]).get()
-                    .then((querySnapshot) => {
-
-                        setDeviceList(documents => querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-
-                    });
-            } else {
-                console.log("yok offline");
-
-                var dbdeviceList = await Database.getDeviceList();
-                setDeviceList(dbdeviceList);
-            }
+                });
 
 
         } catch (error) {
@@ -90,6 +83,7 @@ const HomeScreen = ({ navigation }) => {
 
     useEffect(() => {
         // synchronizeData();
+        addDeviceToCloud();
         getDeviceList();
     }, []);
     const CreateViewVaseV1 = (device) => {
@@ -99,10 +93,8 @@ const HomeScreen = ({ navigation }) => {
                 key={device.id}
                 style={{ width: '100%', marginBottom: 10 }} // tam genişlik, alt boşluk
                 activeOpacity={0.8}
-                onPress={() => navigation.navigate('PlantBigView',
-                    { deviceid: device.deviceid, deviceType: device.devicetype, devicename: device.devicename })}
             >    <View style={{ width: '100%' }}>
-               
+
                     <SwipeablePlantV1
                         device={device}
                         t={t}
@@ -121,8 +113,10 @@ const HomeScreen = ({ navigation }) => {
     }
 
     const handleDelete = async (device) => {
-        await Database.DeleteDevice(device.id);
-        setDeviceList((prev) => prev.filter((d) => d.id !== device.id));
+        Alert.alert('Test', 'Bu ekran yüklendi, alert çalışıyor mu?');
+        /*   await Database.DeleteDevice(device.id);
+           setDeviceList((prev) => prev.filter((d) => d.id !== device.id));
+           */
     };
     const CreateViewPlantWater2Pomp = (device) => {
 
@@ -131,7 +125,7 @@ const HomeScreen = ({ navigation }) => {
                 key={device.id}
                 style={{ width: '100%', marginBottom: 10 }} // tam genişlik, alt boşluk
                 activeOpacity={0.8}
-             
+
             >    <View style={{ width: '100%' }}>
 
                     <PlantSmallViewPomp
