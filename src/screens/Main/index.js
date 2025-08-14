@@ -15,6 +15,8 @@ import LottieView from 'lottie-react-native';
 import PlantSmallViewPomp from '../Devicescreen/PlantWater2Pomp/SwipeablePlantPomp';
 import SwipeablePlantV1 from '../Devicescreen/Plantvase/SwipeablePlantV1';
 import SwipeableItem from '../../companent/SwipeableItem';
+import { Button } from 'react-native-paper';
+import WifiManager from "react-native-wifi-reborn";
 
 
 
@@ -25,11 +27,14 @@ const HomeScreen = ({ navigation }) => {
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState(null);
     const { t, i18n } = useTranslation();
+    const [userid, setUserid] = useState(null);
 
-    const { isWifi, isConnected, hasInternet } = useWifiInternetStatus();
+   // const { isWifi, isConnected, hasInternet } = useWifiInternetStatus();
 
-
-
+    const { isWifi } =useState(true);
+    const { isConnected } =useState(true);
+    const { hasInternet } =useState(true);
+    
     const addDeviceToCloud = async () => {
         var dbdeviceList = await Database.getDeviceList();
 
@@ -98,6 +103,9 @@ const HomeScreen = ({ navigation }) => {
 
     useEffect(() => {
         // synchronizeData();
+        const user = auth().currentUser;
+        setUserid(user.uid);
+
         addDeviceToCloud();
         getDeviceList();
     }, []);
@@ -113,12 +121,14 @@ const HomeScreen = ({ navigation }) => {
                     <SwipeablePlantV1
                         device={device}
                         t={t}
+                        userid={userid}
                         onDelete={handleDelete}
                         onPress={() =>
                             navigation.navigate('PlantBigView', {
                                 deviceid: device.deviceid,
                                 deviceType: device.devicetype,
                                 devicename: device.devicename,
+                                userid: userid
                             })
                         }
                     />
@@ -141,6 +151,40 @@ const HomeScreen = ({ navigation }) => {
            setDeviceList((prev) => prev.filter((d) => d.id !== device.id));
            */
     };
+
+    const ConnectWifiTest = async () => {
+        try {
+            await WifiManager.connectToProtectedSSID("smartVase2", "78945621", false, false);
+            setTimeout(async () => {
+                try {
+                    const connectedSSID = await WifiManager.getCurrentWifiSSID();
+                    console.log('Bağlı SSID:', connectedSSID);
+                    if (connectedSSID === ssidDevice) {
+                        // setDeviceWifiConnected(true);
+                        //Alert.alert('Bağlantı Başarılı', `WiFi ağına bağlanıldı: ${ssidDevice}`);
+
+
+
+                        Alert.alert('Bağlantı Başarılı send Param Yaptı');
+                        //swich device to standar wifi or 3G
+
+                    } else {
+                        console.log('Bağlantı başarısız ya da farklı ağa bağlı');
+                        setError('Bağlantı başarısız ya da farklı ağa bağlı');
+
+                    }
+                } catch (e) {
+                    console.log(error);
+                    setError(error.message);
+                    Alert.alert('Bağlantı Hatası', 'WiFi ağına bağlanılamadı.');
+                }
+            }, 5000);
+
+        } catch (error) {
+            console.log(error);
+            setError(error.message);
+        }
+    }
     const CreateViewPlantWater2Pomp = (device) => {
 
         return (
@@ -155,11 +199,13 @@ const HomeScreen = ({ navigation }) => {
                         device={device}
                         t={t}
                         onDelete={handleDelete}
+                        userid={userid}
                         onPress={() =>
                             navigation.navigate('PlantBigViewPomp', {
                                 deviceid: device.deviceid,
                                 deviceType: device.devicetype,
                                 devicename: device.devicename,
+                                userid: userid
                             })
                         }
                     />
@@ -180,6 +226,8 @@ const HomeScreen = ({ navigation }) => {
         )
     }
 
+
+
     return (
 
         <LinearGradient colors={['#090979', '#00D4FF', '#020024']} style={styles.container}>
@@ -190,6 +238,7 @@ const HomeScreen = ({ navigation }) => {
                     <RefreshControl refreshing={refreshing} onRefresh={getDeviceList} />
                 }
             >
+                <Button onPress={ConnectWifiTest}>Test Wifi Connect</Button>
                 <ErrorMessage message={error} />
 
                 {

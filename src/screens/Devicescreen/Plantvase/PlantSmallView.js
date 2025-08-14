@@ -6,12 +6,11 @@ import Config from 'react-native-config';
 import i18n from '../../../i18n';
 import { useTranslation } from 'react-i18next';
 import mqtt from 'mqtt';
-
 import { getMoistureIcon, interpolateColor, getTemperatureColor, getSoilMoistureLevel } from './iconfunctions';
 
 
 
-const PlantSmallView = ({ plantName, deviceid }) => {
+const PlantSmallView = ({ plantName, deviceid,userid }) => {
 
     const { t, i18n } = useTranslation();
 
@@ -34,12 +33,12 @@ const PlantSmallView = ({ plantName, deviceid }) => {
             return;
         }
         var topic = deviceid + '/sensorData';
-   
+
         console.log(Config.mqttwebsocket);
         console.log(Config.mqttWebSocketport);
         const client = mqtt.connect(Config.mqttwebsocket, {
             port: Config.mqttWebSocketport,
-            clientId: 'rn_client_' + Math.random().toString(16).substr(2, 8),
+            clientId: userid,
             username: Config.mqtt_username,    // eğer auth varsa
             password: Config.mqtt_password,    // eğer auth varsa
             rejectUnauthorized: false, // self-signed cert için
@@ -95,16 +94,27 @@ const PlantSmallView = ({ plantName, deviceid }) => {
                 <View style={styles.middleColumn}>
                     <MaterialDesignIcons name={icon?.name} size={32} color={icon?.color} />
                     <Text style={[styles.statusLabel, { color: icon?.color }]}>{t(icon?.label)} </Text>
-                </View> 
+                </View>
 
-                {/* Orta - sıcaklık */}
+                
                 <View style={styles.middleColumn}>
-                     
+                    <AnimatedCircularProgress
+                        size={70}
+                        width={8}
+                        fill={soil_moisture}
+                        tintColor={icon?.color}
+                        backgroundColor="#e0e0e0"
+                        rotation={0}
+                    >
+                        {(fill) => (
+                            <Text style={styles.percentageText}>{`${Math.round(fill)}%`}</Text>
+                        )}
+                    </AnimatedCircularProgress>
                 </View>
 
 
             </View>
- 
+
         </View>
     );
 };

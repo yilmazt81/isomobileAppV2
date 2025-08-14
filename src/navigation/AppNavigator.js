@@ -22,7 +22,7 @@ import WifiScannerScreen from '../screens/WifiScanner/WifiScannerScreen'; // yen
 import PlantBigView from '../screens/Devicescreen/Plantvase/PlantBigView'; // yeni ekran
 import ManuelSetting from '../screens/ManuelSetting/ManuelSettingScreen'; // yeni ekran
 import ForgotPasswordScreen from '../screens/ForgotPassword/forgotPasswordScreen';
-import PlantBigViewPomp from '../screens/Devicescreen/PlantWater2Pomp/PlantBigViewPomp';
+import PlantBigViewPomp from '../screens/Devicescreen/PlantWater2Pomp/PlantBigViewPomp'; 
 
 const AuthStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();

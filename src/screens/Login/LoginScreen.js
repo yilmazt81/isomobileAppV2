@@ -1,4 +1,4 @@
-import React, { useState,useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
   View,
   Text,
@@ -37,8 +37,11 @@ const LoginScreen = ({ navigation }) => {
   const { setUserToken } = useContext(AuthContext);
   const [loginError, setLoginError] = useState(null);
   const togglePasswordVisibility = () => setSecure(!secure);
+  const [loginStart,setLoginStart]=useState(false);
 
   const handleLogin = () => {
+    setLoginError(null);
+    setLoginStart(true);
     auth()
       .signInWithEmailAndPassword(email, password)
       .then(userCredential => {
@@ -47,11 +50,17 @@ const LoginScreen = ({ navigation }) => {
       })
       .catch(error => {
         setLoginError(t(error.code));// örnek: Şifre hatalıysa gösterilir
-      });
+      }).finally(()=>{
+          setLoginStart(false);
+      })
   };
   const changeLanguage = async (lng) => {
+    debugger;
+    //var newLang = (lng === 'tr' ? 'en' : 'tr');
     setLang(lng);
+    i18n.changeLanguage(lng);
     await setStoredLanguage(lng);
+
     // Eğer RTL bir dil eklersen buraya I18nManager ayarı eklenir
   };
 
@@ -63,6 +72,7 @@ const LoginScreen = ({ navigation }) => {
         const stored = await AsyncStorage.getItem(LANGUAGE_KEY);
         if (stored) {
           setLang(stored);
+          i18n.changeLanguage(stored);
         }
       } catch { }
     };
@@ -128,7 +138,7 @@ const LoginScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loginStart}>
             <Text style={styles.buttonText}>{t("login")}</Text>
           </TouchableOpacity>
           <ErrorMessage message={loginError} />

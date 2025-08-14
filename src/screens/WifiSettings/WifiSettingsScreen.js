@@ -91,8 +91,9 @@ const WifiSettingsScreen = ({ navigation }) => {
                         setDeviceWifiConnected(true);
                         //Alert.alert('Bağlantı Başarılı', `WiFi ağına bağlanıldı: ${ssidDevice}`);
 
-                        await RegisterDevice(tmpdeviceId);
+                        
                         await SendParams(ssid, password, tmpdeviceId);
+                        await RegisterDevice(tmpdeviceId);
                         Alert.alert('Bağlantı Başarılı send Param Yaptı');
                         //swich device to standar wifi or 3G
                         WifiManager.disconnect().then(async () => {
@@ -233,9 +234,7 @@ const WifiSettingsScreen = ({ navigation }) => {
                             secureTextEntry={!showPassword}
                             value={password}
                             onChangeText={setPassword}
-                        />
-
-
+                        /> 
 
                         <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                             <MaterialDesignIcons

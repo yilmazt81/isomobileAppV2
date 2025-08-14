@@ -96,7 +96,7 @@ const SignupScreen = ({ navigation }) => {
                             <>
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="Ad Soyad"
+                                    placeholder={t("nameandSurname")}
                                     placeholderTextColor="#aaa"
                                     value={values.name}
                                     onBlur={handleBlur('name')}
@@ -169,8 +169,6 @@ const SignupScreen = ({ navigation }) => {
                                     />
                                     <TouchableOpacity onPress={toggleConfirmVisibility}>
                                         <FontAwesome6 name={secureConfirm ? 'eye-slash' : 'eye'} size={22} color="#555" />
-
-
                                     </TouchableOpacity>
                                 </View>
                                 {touched.confirm && errors.confirm && (
@@ -182,12 +180,12 @@ const SignupScreen = ({ navigation }) => {
                                     disabled={isSubmitting}
 
                                 >
-                                    <Text style={styles.buttonText}>Hesap Oluştur</Text>
+                                    <Text style={styles.buttonText}>{t("CreateAccout")}</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                                     <Text style={styles.footerText}>
-                                        Zaten bir hesabın var mı? <Text style={styles.link}>Giriş Yap</Text>
+                                       {t("AlreadyHaveAccount")}<Text style={styles.link}>{t("login")}</Text>
                                     </Text>
                                 </TouchableOpacity>  </>
                         )}

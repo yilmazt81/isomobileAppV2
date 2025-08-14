@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions, Alert, ScrollView } from 'react-native';
+import { View, Image, StyleSheet, TouchableOpacity, Dimensions, Alert, ScrollView } from 'react-native';
 
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 
@@ -15,29 +15,58 @@ import LinearGradient from 'react-native-linear-gradient';
 
 
 import ErrorMessage from '../../../companent/ErrorMessage';
+import TaskEditor from '../../../companent/TaskEditor';
+import DurationDlg from '../../../companent/DurationDlg';
+
+import {
+    Appbar,
+    Avatar,
+    Button,
+    Card,
+    Chip,
+    Dialog,
+    Divider,
+    FAB,
+    IconButton,
+    Menu,
+    Modal,
+    Portal,
+    Searchbar,
+    SegmentedButtons,
+    Surface,
+    Switch,
+    Text,
+    TextInput,
+    useTheme,
+} from "react-native-paper";
 
 const screenWidth = Dimensions.get("window").width;
 
 
-const PlantBigViewPomp = () => {
+const PlantBigViewPomp = ({ navigation }) => {
     const route = useRoute();
     const [response, setResponse] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [editorOpen, setEditorOpen] = useState(false);
 
     const { t, i18n } = useTranslation();
-    const { deviceid = '', devicename = '' } = route.params || {};
+    const { deviceid = '', devicename = '', userid } = route.params || {};
     const [message, setMessage] = useState(t("Connecting"));
     const [errorMessage, setErrorMessage] = useState(null);
-
+    const [editing, setEditing] = useState(undefined);
     const [client, setClient] = useState(null);
 
-    const [temperature, setTemperature] = useState(0);
-    const [airHumidity, setAirHumidity] = useState(0);
-    const [soil_moisture, setSoilMoisture] = useState(0);
-    const [icon, seticon] = useState(null);
+    const [isPomp1Open, setisPomp1Open] = useState(false);
+    const [isPomp2Open, setisPomp2Open] = useState(false);
+
     const [connected, setConnected] = useState(false);
     const [imageUri, setImageUri] = useState(null);
     const [transferred, setTransferred] = useState(0);
+    const defaultDuration = 60;
+    const [durationDlg, setDurationDlg] = useState({ open: false, pump: 1, value: String(defaultDuration) });
+    const [pump1On, setPump1On] = useState(false);
+    const [pump2On, setPump2On] = useState(false);
+    const [durationvisible, setdurationvisible] = useState(false);
 
 
 
@@ -87,7 +116,7 @@ const PlantBigViewPomp = () => {
         }
         const client = mqtt.connect(Config.mqttwebsocket, {
             port: Config.mqttWebSocketport,
-            clientId: 'rn_client_' + Math.random().toString(16).substr(2, 8),
+            clientId: userid,
             username: Config.mqtt_username,    // eğer auth varsa
             password: Config.mqtt_password,    // eğer auth varsa
             rejectUnauthorized: false, // self-signed cert için
@@ -103,16 +132,16 @@ const PlantBigViewPomp = () => {
 
         client.on('message', (topic, msg) => {
             setMessage(null);
-         /*   if (topic === topic) {
-                var jsonData = JSON.parse(msg.toString());
-                setSoilMoisture(jsonData.soil_moisture);
-                setTemperature(jsonData.temperature);
-                setAirHumidity(jsonData.humidity);
-
-                var icon_ = getMoistureIcon(getSoilMoistureLevel(jsonData.soil_moisture));
-                console.log(icon_);
-                seticon(icon_);
-            }*/
+            /*   if (topic === topic) {
+                   var jsonData = JSON.parse(msg.toString());
+                   setSoilMoisture(jsonData.soil_moisture);
+                   setTemperature(jsonData.temperature);
+                   setAirHumidity(jsonData.humidity);
+   
+                   var icon_ = getMoistureIcon(getSoilMoistureLevel(jsonData.soil_moisture));
+                   console.log(icon_);
+                   seticon(icon_);
+               }*/
         });
 
         client.on('error', err => {
@@ -190,98 +219,140 @@ const PlantBigViewPomp = () => {
     useEffect(() => {
         connectMqtt();
 
-
     }, []);
 
-    // Örnek veri (gerçek sensör verisiyle değiştirilebilir)
-    /*const days = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cumrt", "Paz"];
-    const humidityData = [60, 65, 70, 75, 72, 70, 60];
-    const temperatureData = [22, 24, 26, 25, 23, 25, 26];
-    const soilMoistureData = [40, 45, 38, 50, 42, 34, 50];
-    const chartConfig = {
-        backgroundColor: "#e0f7fa",
-        backgroundGradientFrom: "#e0f7fa",
-        backgroundGradientTo: "#b2ebf2",
-        decimalPlaces: 0,
-        color: (opacity = 1) => `rgba(0, 150, 136, ${opacity})`,
-        labelColor: () => '#00796b',
-    };*/
 
 
+    const openDurationFor = (pump) => {
+        //const current = pump === 1 ? pump1Duration : pump2Duration;
+        setDurationDlg({ open: true, pump, value: String("") });
+        console.log(durationDlg);
+        setdurationvisible(true);
+        debugger;
+        // setCustomSeconds(String(current));
 
+    };
+
+    const handlePump1 = () => {
+        //if (pump1On) return stopPump(1);
+        //startPump(1, pump1Duration);
+    };
+
+    const openTaskCreate = (pomp) => {
+        //setEditing(undefined);
+        setEditorOpen(true);
+    };
+
+    const handlePump2 = () => {
+        //if (pump1On) return stopPump(1);
+        //startPump(1, pump1Duration);
+    };
     return (
 
         <LinearGradient colors={['#090979', '#00D4FF', '#020024']} style={styles.container}>
+            <Card style={styles.container}>
+                <ScrollView >
+                    <View style={styles.imageContainer}>
+                        <Image
+                            source={imageUri ? { uri: imageUri } : require('./vases.png')}
+                            style={styles.image}
+                        />
+                        <TouchableOpacity style={styles.editIcon} onPress={onPictureButtonPress}>
+                            <MaterialDesignIcons name="image-edit" size={28} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.infoSection}>
+                        <Text style={styles.name}> {devicename} </Text>
+                        <Text style={styles.name}>Aloe Vera</Text>
+                        <Text style={styles.description}>Güneşli alanları seven, suyu depolayan bir bitki türüdür.</Text>
+                    </View>
 
 
-            <ScrollView style={styles.container}>
-                <View style={styles.imageContainer}>
-                    <Image
-                        source={imageUri ? { uri: imageUri } : require('./vases.png')}
-                        style={styles.image}
+                    <Card>
+                        <View style={styles.pompcontainer}>
+                            <View style={styles.grid}>
+                                <View style={styles.cell}>
+                                    <IconButton
+                                        icon={pump1On ? "water-pump" : "play-circle-outline"}
+                                        size={34}
+                                        onPress={handlePump1}
+                                        onLongPress={() => openDurationFor(1)}
+
+                                        style={[styles.pumpBtn, { borderColor: "#00BFA5" }, pump1On && { borderWidth: 0 }]}
+                                        containerColor={pump1On ? "#00BFA5" : undefined}
+                                        iconColor={pump1On ? "white" : "#00BFA5"}
+                                        disabled={!isPomp1Open}
+                                    />
+                                    <Text style={styles.pumpLabel}>{pump1On ? `${pump1Remaining}s` : "Pompa 1"}</Text>
+
+                                    <Switch value={isPomp1Open} onValueChange={() => setisPomp1Open(!isPomp1Open)} />;
+                                </View>
+
+                                <View style={styles.cell}>
+                                    <IconButton icon="calendar-clock"
+                                        size={34}
+                                        disabled={!isPomp1Open}
+                                        onPress={() => openTaskCreate(1)}
+                                    />
+                                    <Text style={styles.pumpLabel}></Text>
+                                </View>
+
+                                <View style={styles.cell}>
+                                    <IconButton
+                                        icon={pump1On ? "water-pump" : "play-circle-outline"}
+                                        size={34}
+                                        onPress={handlePump2}
+                                        onLongPress={() => openDurationFor(2)}
+                                        style={[styles.pumpBtn, { borderColor: "#00BFA5" }, pump1On && { borderWidth: 0 }]}
+                                        containerColor={pump1On ? "#00BFA5" : undefined}
+                                        iconColor={pump1On ? "white" : "#00BFA5"}
+                                        disabled={!isPomp2Open}
+                                    />
+                                    <Text style={styles.pumpLabel}>{pump2On ? `${pump2Remaining}s` : "Pompa 2"}</Text>
+                                    <Switch value={isPomp2Open} onValueChange={() => setisPomp2Open(!isPomp2Open)} />;
+                                </View>
+
+                                <View style={styles.cell}>
+                                    <IconButton
+                                        icon="calendar-clock"
+                                        size={34}
+                                        disabled={!isPomp2Open}
+                                        onPress={() => openTaskCreate(2)}
+                                    />
+                                    <Text style={styles.pumpLabel}></Text>
+                                </View>
+                            </View>
+                        </View>
+                    </Card>
+
+                    {
+                        /*<TouchableOpacity style={styles.button} onPress={() => setEditorOpen(true)}>
+                            <Text style={styles.waterButton}>   {t("StartWaterPomp")}</Text>
+                        </TouchableOpacity>*/
+                    }
+
+                    <ErrorMessage message={errorMessage}></ErrorMessage>
+
+                    <DurationDlg
+
+                        duration={durationDlg}
+                        closeDuration={() => setdurationvisible(false)}
+                        durationvisible={durationvisible}
+                        defaultDuration={defaultDuration}
+                    ></DurationDlg>
+
+                    <TaskEditor
+                        visible={editorOpen}
+                        defaultDuration={defaultDuration}
+                        onDismiss={() => setEditorOpen(false)}
+                        // onSave={upsertTask}
+                        initial={editing}
+                        t={t}
                     />
-                    <TouchableOpacity style={styles.editIcon} onPress={onPictureButtonPress}>
-                        <MaterialDesignIcons name="image-edit" size={28} color="#fff" />
-                    </TouchableOpacity>
-                </View>
-
-                <View style={styles.infoSection}>
-                    <Text style={styles.name}> {devicename} </Text>
-                    <Text style={styles.name}>Aloe Vera</Text>
-                    <Text style={styles.description}>Güneşli alanları seven, suyu depolayan bir bitki türüdür.</Text>
-                </View>
-              {/*  <StatusCard icon={icon}
-                    temperature={temperature}
-                    airHumidity={airHumidity}
-                    t={t}
-                ></StatusCard>
-                */}
-                {/* Nem 
-            <View style={styles.chartSection}>
-                <Text style={styles.chartTitle}>Hava Nemi (%)</Text>
-                <LineChart
-                    data={{ labels: days, datasets: [{ data: humidityData }] }}
-                    width={screenWidth - 40}
-                    height={180}
-                    chartConfig={chartConfig}
-                    bezier
-                    style={styles.chart}
-                />
-            </View>
- 
-            <View style={styles.chartSection}>
-                <Text style={styles.chartTitle}>Sıcaklık (°C)</Text>
-                <LineChart
-                    data={{ labels: days, datasets: [{ data: temperatureData }] }}
-                    width={screenWidth - 40}
-                    height={180}
-                    chartConfig={chartConfig}
-                    bezier
-                    style={styles.chart}
-                />
-            </View>
- 
-            <View style={styles.chartSection}>
-                <Text style={styles.chartTitle}>Toprak Nem Oranı (%)</Text>
-                <LineChart
-                    data={{ labels: days, datasets: [{ data: soilMoistureData }] }}
-                    width={screenWidth - 40}
-                    height={180}
-                    chartConfig={chartConfig}
-                    bezier
-                    style={styles.chart}
-                />
-            </View>
-*/}
-
-
-
-                <TouchableOpacity style={styles.button} onPress={StartPomp}>
-                    <Text style={styles.waterButton}>   {t("StartWaterPomp")}</Text>
-                </TouchableOpacity>
-                <ErrorMessage message={errorMessage}></ErrorMessage>
-            </ScrollView>
-        </LinearGradient>
+                </ScrollView>
+            </Card >
+        </LinearGradient >
     );
 }
 
@@ -292,6 +363,30 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#f4fdfd",
         padding: 20
+    },
+    pompcontainer: {
+        padding: 10,
+    },
+    grid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    cell: {
+        width: '45%',
+        height: 120,
+        backgroundColor: '#e0f2f1',
+        marginBottom: 12,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    pumpLabel: {
+        marginTop: 8,
+        fontSize: 14,
+        color: '#00796b',
+        fontWeight: '600',
     },
     card: {
         backgroundColor: '#f9f9f9',

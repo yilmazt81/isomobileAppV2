@@ -11,7 +11,7 @@ import { getMoistureIcon, interpolateColor, getTemperatureColor, getSoilMoisture
 
 
 
-const PlantSmallViewPomp = ({ plantName, deviceid }) => {
+const PlantSmallViewPomp = ({ plantName, deviceid, userid }) => {
 
     const { t, i18n } = useTranslation();
 
@@ -26,60 +26,58 @@ const PlantSmallViewPomp = ({ plantName, deviceid }) => {
     const [connected, setConnected] = useState(false);
 
     //const [soilMoistureLevel, setsoilMoistureLevel] = useState('normal'); // 'nemli', 'normal', 'kuru'
-    /*
-        const connectMqtt = () => {
-    
-            if (Config.mqttwebsocket === undefined) {
-                setMessage("config Cannot read");
-                return;
-            }
-            var topic = deviceid + '/sensorData';
-       
-            console.log(Config.mqttwebsocket);
-            console.log(Config.mqttWebSocketport);
-            const client = mqtt.connect(Config.mqttwebsocket, {
-                port: Config.mqttWebSocketport,
-                clientId: 'rn_client_' + Math.random().toString(16).substr(2, 8),
-                username: Config.mqtt_username,    // eğer auth varsa
-                password: Config.mqtt_password,    // eğer auth varsa
-                rejectUnauthorized: false, // self-signed cert için
-            });
-    
-            client.on('connect', () => {
-                console.log('WSS MQTT bağlandı');
-                setMessage(t("Connected"));
-                setConnected(true);
-                setClient(client);
-                client.subscribe(topic);
-            });
-    
-            client.on('message', (topic, msg) => {
-    
-                if (topic === topic) {
-                    var jsonData = JSON.parse(msg.toString());
-                    setSoilMoisture(jsonData.soil_moisture);
-                    setTemperature(jsonData.temperature);
-                    setAirHumidity(jsonData.humidity);
-    
-                    var icon_ = getMoistureIcon(getSoilMoistureLevel(jsonData.soil_moisture));
-                    seticon(icon_);
-                }
-            });
-    
-            client.on('error', err => {
-                console.log('MQTT WSS HATA:', err);
-                setMessage(t("ConnectionError"), err.message);
-                setConnected(false);
-            });
-    
-            return () => {
-                client.end();
-            }; 
-        }
-    */
-    useEffect(() => {
-        // connectMqtt();
 
+    const connectMqtt = () => {
+
+        if (Config.mqttwebsocket === undefined) {
+            setMessage("config Cannot read");
+            return;
+        }
+        var topic = deviceid + '/sensorData';
+ 
+        const client = mqtt.connect(Config.mqttwebsocket, {
+            port: Config.mqttWebSocketport,
+            clientId: userid,
+            username: Config.mqtt_username,    // eğer auth varsa
+            password: Config.mqtt_password,    // eğer auth varsa
+            rejectUnauthorized: false, // self-signed cert için
+        });
+
+        client.on('connect', () => {
+            console.log('WSS MQTT bağlandı');
+            setMessage(t("Connected"));
+            setConnected(true);
+            setClient(client);
+            client.subscribe(topic);
+        });
+
+        client.on('message', (topic, msg) => {
+
+            if (topic === topic) {
+               /* var jsonData = JSON.parse(msg.toString());
+                setSoilMoisture(jsonData.soil_moisture);
+                setTemperature(jsonData.temperature);
+                setAirHumidity(jsonData.humidity);
+
+                var icon_ = getMoistureIcon(getSoilMoistureLevel(jsonData.soil_moisture));
+                seticon(icon_);
+                */
+            }
+        });
+
+        client.on('error', err => {
+            console.log('MQTT WSS HATA:', err);
+            setMessage(t("ConnectionError"), err.message);
+            setConnected(false);
+        });
+
+        return () => {
+            client.end();
+        };
+    }
+
+    useEffect(() => {
+        connectMqtt();
 
     }, []);
 
@@ -98,7 +96,7 @@ const PlantSmallViewPomp = ({ plantName, deviceid }) => {
                 {/* Orta - sıcaklık */}
                 <View style={styles.middleColumn}>
                     <MaterialDesignIcons name='engine-outline' size={50} color='#1de42aff' />
-                </View> 
+                </View>
             </View>
 
         </View>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions, Alert, ScrollView } from 'react-native';
 
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
-
+import { Switch, Button, Card } from 'react-native-paper';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import Config from 'react-native-config';
 import { useTranslation } from 'react-i18next';
@@ -11,12 +11,14 @@ import { getMoistureIcon, getSoilMoistureLevel } from './iconfunctions';
 import StatusCard from './StatusCard';
 import { useRoute } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
+import LottieView from 'lottie-react-native';
+import Slider from '@react-native-community/slider';
 //import storage from '@react-native-firebase/storage';
 
-
+import styles from './PlantBigViewStyle';
 import ErrorMessage from '../../../companent/ErrorMessage';
 
-const screenWidth = Dimensions.get("window").width;
+
 
 
 const PlantBigView = () => {
@@ -25,36 +27,39 @@ const PlantBigView = () => {
     const [uploading, setUploading] = useState(false);
 
     const { t, i18n } = useTranslation();
-    const { deviceid = '', devicename = '' } = route.params || {};
+    const { deviceid = '', devicename = '', userid = "" } = route.params || {};
     const [message, setMessage] = useState(t("Connecting"));
     const [errorMessage, setErrorMessage] = useState(null);
 
     const [client, setClient] = useState(null);
-
-    const [temperature, setTemperature] = useState(0);
-    const [airHumidity, setAirHumidity] = useState(0);
+    /*
+        const [temperature, setTemperature] = useState(0);
+        const [airHumidity, setAirHumidity] = useState(0);
+        */
     const [soil_moisture, setSoilMoisture] = useState(0);
     const [icon, seticon] = useState(null);
     const [connected, setConnected] = useState(false);
     const [imageUri, setImageUri] = useState(null);
     const [transferred, setTransferred] = useState(0);
+    const [pompuRunning, setpompuRunning] = useState(false);
+    const [pompRunTime, setpompRunTime] = useState(0);
 
 
 
     const onPictureButtonPress = () => {
         Alert.alert(
-            "Resim Kaynağı",
-            "Fotoğrafı nasıl eklemek istersin?",
+            t("ImageSource"),
+            t("WhichSourceDoyouWant"),
             [
                 {
-                    text: "Kamera",
+                    text: t("Camera"),
                     onPress: () => openCamera()
                 },
                 {
-                    text: "Galeri",
+                    text: t("Galery"),
                     onPress: () => openGallery()
                 },
-                { text: "İptal", style: "cancel" }
+                { text: t("Cancel"), style: "cancel" }
             ]
         );
     };
@@ -80,14 +85,13 @@ const PlantBigView = () => {
     const connectMqtt = () => {
         var topic = deviceid + '/sensorData';
         setErrorMessage(null);
-        console.log(Config);
         if (Config.mqttwebsocket === undefined) {
             setErrorMessage("config Cannot read");
             return;
         }
         const client = mqtt.connect(Config.mqttwebsocket, {
             port: Config.mqttWebSocketport,
-            clientId: 'rn_client_' + Math.random().toString(16).substr(2, 8),
+            clientId: userid,
             username: Config.mqtt_username,    // eğer auth varsa
             password: Config.mqtt_password,    // eğer auth varsa
             rejectUnauthorized: false, // self-signed cert için
@@ -106,8 +110,8 @@ const PlantBigView = () => {
             if (topic === topic) {
                 var jsonData = JSON.parse(msg.toString());
                 setSoilMoisture(jsonData.soil_moisture);
-                setTemperature(jsonData.temperature);
-                setAirHumidity(jsonData.humidity);
+                //  setTemperature(jsonData.temperature);
+                // setAirHumidity(jsonData.humidity);
 
                 var icon_ = getMoistureIcon(getSoilMoistureLevel(jsonData.soil_moisture));
                 console.log(icon_);
@@ -128,6 +132,9 @@ const PlantBigView = () => {
     }
 
     const StartPomp = async () => {
+
+
+        setpompuRunning(false);
         if (!client) {
             console.warn('MQTT client henüz bağlanmadı.');
             return;
@@ -137,16 +144,20 @@ const PlantBigView = () => {
         const command = {
             command: 'water',
             value: 1,
+            time: pompRunTime
         };
 
         client.publish(topic, JSON.stringify(command), { qos: 1 }, (error) => {
             if (error) {
                 console.error('Publish Hatası:', error);
                 setErrorMessage('Publish Hatası:', error);
+
             } else {
                 console.log('Komut gönderildi:', command);
+                setpompuRunning(true);
             }
         });
+
     };
 
 
@@ -214,40 +225,44 @@ const PlantBigView = () => {
         <LinearGradient colors={['#090979', '#00D4FF', '#020024']} style={styles.container}>
 
 
-            <ScrollView style={styles.container}>
-                <View style={styles.imageContainer}>
-                    <Image
-                        source={imageUri ? { uri: imageUri } : require('./Plant.jpg')}
-                        style={styles.image}
-                    />
-                    <TouchableOpacity style={styles.editIcon} onPress={onPictureButtonPress}>
-                        <MaterialDesignIcons name="image-edit" size={28} color="#fff" />
-                    </TouchableOpacity>
-                </View>
+            <Card style={styles.container}>
+                <ScrollView>
+                    <View style={styles.imageContainer}>
+                        <Image
+                            source={imageUri ? { uri: imageUri } : require('./Plant.jpg')}
+                            style={styles.image}
+                        />
+                        <TouchableOpacity style={styles.editIcon} onPress={onPictureButtonPress}>
+                            <MaterialDesignIcons name="image-edit" size={28} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
 
-                <View style={styles.infoSection}>
-                    <Text style={styles.name}> {devicename} </Text>
-                    <Text style={styles.name}>Aloe Vera</Text>
-                    <Text style={styles.description}>Güneşli alanları seven, suyu depolayan bir bitki türüdür.</Text>
-                </View>
-                <StatusCard icon={icon}
-                    temperature={temperature}
-                    airHumidity={airHumidity}
-                    t={t}
-                ></StatusCard>
-                {/* Nem 
-            <View style={styles.chartSection}>
-                <Text style={styles.chartTitle}>Hava Nemi (%)</Text>
-                <LineChart
-                    data={{ labels: days, datasets: [{ data: humidityData }] }}
-                    width={screenWidth - 40}
-                    height={180}
-                    chartConfig={chartConfig}
-                    bezier
-                    style={styles.chart}
-                />
-            </View>
- 
+                    <View style={styles.infoSection}>
+                        <Text style={styles.name}> {devicename} </Text>
+                        <Text style={styles.name}>Aloe Vera</Text>
+                        <Text style={styles.description}>Güneşli alanları seven, suyu depolayan bir bitki türüdür.</Text>
+                    </View>
+                    <StatusCard icon={icon}
+                        // temperature={temperature}
+                        //airHumidity={airHumidity}
+                        soil_moisture={soil_moisture}
+                        t={t}
+                    ></StatusCard>
+
+                    {!pompuRunning ? <Card>
+                        <Text style={styles.PompTitle}>{t("WaterPompTimeSecond")} {pompRunTime}</Text>
+                        <Slider
+                            step={1}
+                            style={styles.slider}
+                            minimumValue={10}
+                            maximumValue={160}
+
+                            value={pompRunTime}
+                            onValueChange={setpompRunTime}
+                        />
+                    </Card> : ""
+                    }
+                    {/* Nem 
             <View style={styles.chartSection}>
                 <Text style={styles.chartTitle}>Sıcaklık (°C)</Text>
                 <LineChart
@@ -275,99 +290,30 @@ const PlantBigView = () => {
 
 
 
-                <TouchableOpacity style={styles.button} onPress={StartPomp}>
-                    <Text style={styles.waterButton}>   {t("StartWaterPomp")}</Text>
-                </TouchableOpacity>
-                <ErrorMessage message={errorMessage}></ErrorMessage>
-            </ScrollView>
+
+
+                    <Button disabled={pompuRunning} icon={({ size, color }) => (
+                        <MaterialDesignIcons name="engine"
+                            size={size}
+                            color={color} />
+                    )}
+                        mode="contained" onPress={StartPomp}>
+                        {t("StartWaterPomp")}
+                    </Button>
+
+                    {pompuRunning ?
+                        <LottieView
+                            source={require('../../assets/water.json')}
+                            autoPlay
+                            loop
+                            style={styles.lottie}
+                        /> : ""}
+                    <ErrorMessage message={errorMessage}></ErrorMessage>
+                </ScrollView>
+            </Card>
         </LinearGradient>
     );
 }
 
 export default PlantBigView;
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#f4fdfd",
-        padding: 20
-    },
-    card: {
-        backgroundColor: '#f9f9f9',
-        borderRadius: 16,
-        padding: 10,
-        flexDirection: 'row',
-        alignItems: 'center',
-        elevation: 3,
-        marginVertical: 10,
-        justifyContent: 'space-between',
-    },
-    imageContainer: {
-        position: "relative",
-        alignItems: "center",
-        marginBottom: 20
-    },
-    image: {
-        width: 160,
-        height: 160,
-        borderRadius: 80,
-        borderWidth: 2,
-        borderColor: "#009688"
-    },
-    editIcon: {
-        position: "absolute",
-        bottom: 10,
-        right: screenWidth / 2 - 90,
-        backgroundColor: "#009688",
-        borderRadius: 20,
-        padding: 6
-    },
-    infoSection: {
-        alignItems: "center",
-        marginBottom: 20
-    },
-    name: {
-        fontSize: 24,
-        fontWeight: "bold",
-        color: "#00796b"
-    },
-    description: {
-        fontSize: 14,
-        color: "#555",
-        textAlign: "center",
-        marginTop: 5
-    },
-    chartSection: {
-        marginBottom: 30
-    },
-    chartTitle: {
-        fontSize: 16,
-        fontWeight: "bold",
-        marginBottom: 10,
-        color: "#00796b"
-    },
-    chart: {
-        borderRadius: 12
-    },
-    waterButton: {
-        backgroundColor: "#00796b",
-        marginHorizontal: 40,
-        borderRadius: 10,
-        marginBottom: 30
-    },
-    leftColumn: {
-        flex: 1,
-        alignItems: 'flex-start',
-        gap: 2,
-    },
-
-    middleColumn: {
-        alignItems: 'center',
-        marginHorizontal: 10,
-    },
-    rightColumn: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-});
 

@@ -1,14 +1,14 @@
 // ExampleSwipeablePlant.js
 import React, { useEffect } from 'react';
 import {
-    Animated,
-    TouchableOpacity,
-    Text,
-    StyleSheet,
-    Alert,
-    View,
-    InteractionManager,
-    ToastAndroid 
+  Animated,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  Alert,
+  View,
+  InteractionManager,
+  ToastAndroid
 } from 'react-native';
 import { RectButton } from 'react-native-gesture-handler';
 import SwipeableItem from '../../../companent/SwipeableItem';
@@ -19,10 +19,10 @@ const renderDeleteAction = (onDelete, t) => {
   return (progress, dragX) => {
     const scale = dragX?.interpolate
       ? dragX.interpolate({
-          inputRange: [-100, 0],
-          outputRange: [1, 0],
-          extrapolate: 'clamp',
-        })
+        inputRange: [-100, 0],
+        outputRange: [1, 0],
+        extrapolate: 'clamp',
+      })
       : 1;
 
     return (
@@ -58,38 +58,39 @@ const renderDeleteAction = (onDelete, t) => {
   };
 };
 const deleteStyles = StyleSheet.create({
-    button: {
-        backgroundColor: '#ff3b30',
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: 80,
-        marginVertical: 5,
-        borderRadius: 8,
-        padding: 10,
-    },
-    text: {
-        color: 'white',
-        fontSize: 12,
-        marginTop: 4,
-    },
+  button: {
+    backgroundColor: '#ff3b30',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    marginVertical: 5,
+    borderRadius: 8,
+    padding: 10,
+  },
+  text: {
+    color: 'white',
+    fontSize: 12,
+    marginTop: 4,
+  },
 });
 
-const SwipeablePlantPomp = ({ device, onDelete, onPress, t }) => {
+const SwipeablePlantPomp = ({ device, onDelete, onPress, t, userid }) => {
 
- 
-    return (
-        <SwipeableItem
-            renderRightActions={renderDeleteAction(() => onDelete(device), t)}
-            onPress={onPress}
-        >
-            <PlantSmallViewPomp
-                key={device.id}
-                plantName={device.devicename}
-                deviceid={device.deviceid}
-                deviceType={device.devicetype}
-            />
-        </SwipeableItem>
-    );
+
+  return (
+    <SwipeableItem
+      renderRightActions={renderDeleteAction(() => onDelete(device), t)}
+      onPress={onPress}
+    >
+      <PlantSmallViewPomp
+        key={device.id}
+        plantName={device.devicename}
+        deviceid={device.deviceid}
+        deviceType={device.devicetype}
+        userid={userid}
+      />
+    </SwipeableItem>
+  );
 };
 
 export default SwipeablePlantPomp;

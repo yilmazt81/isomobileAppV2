@@ -66,7 +66,7 @@ const deleteStyles = StyleSheet.create({
     },
 });
 
-const SwipeablePlantV1 = ({ device, onDelete, onPress, t }) => {
+const SwipeablePlantV1 = ({ device, onDelete, onPress, t,userid }) => {
     return (
         <SwipeableItem
             renderRightActions={renderDeleteAction(() => onDelete(device), t)}
@@ -77,6 +77,7 @@ const SwipeablePlantV1 = ({ device, onDelete, onPress, t }) => {
                 plantName={device.devicename}
                 deviceid={device.deviceid}
                 deviceType={device.devicetype}
+                userid={userid}
             />
         </SwipeableItem>
     );

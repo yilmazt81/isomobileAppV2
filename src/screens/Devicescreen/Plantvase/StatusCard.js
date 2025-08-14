@@ -4,9 +4,9 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
-import {getTemperatureColor} from './iconfunctions';
+import { getTemperatureColor } from './iconfunctions';
 
-export default function StatusCard({ icon, temperature, airHumidity, t }) {
+export default function StatusCard({ icon, t, soil_moisture }) {
   return (
     <View style={styles.card}>
       {/* Sol Kolon */}
@@ -17,12 +17,23 @@ export default function StatusCard({ icon, temperature, airHumidity, t }) {
 
       {/* Orta Kolon */}
       <View style={styles.middleColumn}>
-        
+        <AnimatedCircularProgress
+          size={70}
+          width={8}
+          fill={soil_moisture}
+          tintColor={icon?.color}
+          backgroundColor="#e0e0e0"
+          rotation={0}
+        >
+          {(fill) => (
+            <Text style={styles.percentageText}>{`${Math.round(fill)}%`}</Text>
+          )}
+        </AnimatedCircularProgress>
       </View>
 
       {/* Sağ Kolon */}
       <View style={styles.rightColumn}>
-   
+
       </View>
     </View>
   );
