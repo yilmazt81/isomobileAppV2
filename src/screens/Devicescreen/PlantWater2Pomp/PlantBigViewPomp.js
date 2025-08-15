@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Image, StyleSheet, TouchableOpacity, Dimensions, Alert, ScrollView } from 'react-native';
 
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
@@ -11,8 +11,8 @@ import mqtt from 'mqtt';
 //import StatusCard from './StatusCard';
 import { useRoute } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
-//import storage from '@react-native-firebase/storage';
-
+import storage from '@react-native-firebase/storage';
+import styles from './PlantBigViewPompStyle';
 
 import ErrorMessage from '../../../companent/ErrorMessage';
 import TaskEditor from '../../../companent/TaskEditor';
@@ -40,7 +40,7 @@ import {
     useTheme,
 } from "react-native-paper";
 
-const screenWidth = Dimensions.get("window").width;
+
 
 
 const PlantBigViewPomp = ({ navigation }) => {
@@ -55,14 +55,14 @@ const PlantBigViewPomp = ({ navigation }) => {
     const [errorMessage, setErrorMessage] = useState(null);
     const [editing, setEditing] = useState(undefined);
     const [client, setClient] = useState(null);
-
+    const clientRef = useRef(null);
     const [isPomp1Open, setisPomp1Open] = useState(false);
     const [isPomp2Open, setisPomp2Open] = useState(false);
 
     const [connected, setConnected] = useState(false);
     const [imageUri, setImageUri] = useState(null);
     const [transferred, setTransferred] = useState(0);
-    const defaultDuration = 60;
+    const defaultDuration = 30;
     const [durationDlg, setDurationDlg] = useState({ open: false, pump: 1, value: String(defaultDuration) });
     const [pump1On, setPump1On] = useState(false);
     const [pump2On, setPump2On] = useState(false);
@@ -114,7 +114,9 @@ const PlantBigViewPomp = ({ navigation }) => {
             setErrorMessage("config Cannot read");
             return;
         }
-        const client = mqtt.connect(Config.mqttwebsocket, {
+        console.log(Config.mqttwebsocket);
+        console.log(Config.mqttWebSocketport);
+        clientRef.current = mqtt.connect(Config.mqttwebsocket, {
             port: Config.mqttWebSocketport,
             clientId: userid,
             username: Config.mqtt_username,    // eğer auth varsa
@@ -122,58 +124,68 @@ const PlantBigViewPomp = ({ navigation }) => {
             rejectUnauthorized: false, // self-signed cert için
         });
 
-        client.on('connect', () => {
+        clientRef.current.on('connect', () => {
+
             console.log('WSS MQTT bağlandı');
             setMessage(t("Connected"));
             setConnected(true);
-            setClient(client);
-            client.subscribe(topic);
-        });
+            // setClient(client);
 
-        client.on('message', (topic, msg) => {
-            setMessage(null);
-            /*   if (topic === topic) {
-                   var jsonData = JSON.parse(msg.toString());
-                   setSoilMoisture(jsonData.soil_moisture);
-                   setTemperature(jsonData.temperature);
-                   setAirHumidity(jsonData.humidity);
-   
-                   var icon_ = getMoistureIcon(getSoilMoistureLevel(jsonData.soil_moisture));
-                   console.log(icon_);
-                   seticon(icon_);
-               }*/
+            clientRef.current.subscribe(topic);
         });
-
-        client.on('error', err => {
+        /*
+         client.on('message', (topic, msg) => {
+             setMessage(null);
+                if (topic === topic) {
+                    var jsonData = JSON.parse(msg.toString());
+                    setSoilMoisture(jsonData.soil_moisture);
+                    setTemperature(jsonData.temperature);
+                    setAirHumidity(jsonData.humidity);
+    
+                    var icon_ = getMoistureIcon(getSoilMoistureLevel(jsonData.soil_moisture));
+                    console.log(icon_);
+                    seticon(icon_);
+                } 
+         });
+         */
+        clientRef.current.on('error', err => {
             console.log('MQTT WSS HATA:', err);
             setErrorMessage(t("ConnectionError"), err.message);
             setConnected(false);
         });
 
         return () => {
-            client.end();
+            clientRef.current.end();
         };
 
     }
 
-    const StartPomp = async () => {
-        if (!client) {
+    const StartPomp = async (pompnumber, time) => {
+        const mqttClient = clientRef.current;
+
+        if (!mqttClient) {
             console.warn('MQTT client henüz bağlanmadı.');
+            setErrorMessage("MQTT client henüz bağlanmadı.")
             return;
         }
         var topic = deviceid + '/command';
 
+
         const command = {
             command: 'water',
             value: 1,
+            time: time,
+            pomp: pompnumber
         };
+        mqttClient.publish(topic, JSON.stringify(command), { qos: 1 }, (error) => {
 
-        client.publish(topic, JSON.stringify(command), { qos: 1 }, (error) => {
             if (error) {
                 console.error('Publish Hatası:', error);
-                setErrorMessage('Publish Hatası:', error);
+                debugger;
+                setErrorMessage(`Publish Hatası: ${error.message}`);
             } else {
-                console.log('Komut gönderildi:', command);
+                setDurationDlg({ open: false, pump: pompnumber, value: String("") });
+                //setErrorMessage(`Komut gönderildi: ${JSON.stringify(command)}`);
             }
         });
     };
@@ -182,38 +194,39 @@ const PlantBigViewPomp = ({ navigation }) => {
     const uploadImage = async (uri) => {
 
 
-        /* const filename = uri.substring(uri.lastIndexOf('/') + 1);
-         const uploadUri = Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
- 
-         setUploading(true);
-         setTransferred(0);
- 
-         const task = storage()
-             .ref(filename)
-             .putFile(uploadUri);
-         debugger;
-         // set progress state
-         task.on('state_changed', snapshot => {
-             setTransferred(
-                 Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 10000
-             );
-         });
- 
-         try {
-             await task;
-         } catch (e) {
-             console.error(e);
-             setErrorMessage(e.message);
-         }
- 
-         setUploading(false);
-         Alert.alert(
-             'Photo uploaded!',
-             'Your photo has been uploaded to Firebase Cloud Storage!'
-         );
- 
-         setImageUri(null);
-         */
+        const filename = uri.substring(uri.lastIndexOf('/') + 1);
+        const uploadUri = Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+
+        setUploading(true);
+        setTransferred(0);
+
+        const task = storage()
+            .ref(filename)
+            .putFile(uploadUri);
+
+        // set progress state
+        task.on('state_changed', snapshot => {
+            setTransferred(
+                Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 10000
+            );
+        });
+
+        try {
+            await task;
+        } catch (e) {
+            console.error(e);
+            setErrorMessage(e.message);
+        }
+
+        setUploading(false);
+
+        const downloadUrl = await storage().ref(filename).getDownloadURL();
+
+        setImageUri(downloadUrl);
+
+
+
+
     };
 
     useEffect(() => {
@@ -223,19 +236,19 @@ const PlantBigViewPomp = ({ navigation }) => {
 
 
 
-    const openDurationFor = (pump) => {
+    const openDurationFor = (pumpNnumber) => {
         //const current = pump === 1 ? pump1Duration : pump2Duration;
-        setDurationDlg({ open: true, pump, value: String("") });
-        console.log(durationDlg);
+        setDurationDlg({ open: true, pump: pumpNnumber, value: String("") });
+
         setdurationvisible(true);
-        debugger;
+
         // setCustomSeconds(String(current));
 
     };
 
-    const handlePump1 = () => {
+    const handlePump1 = async () => {
         //if (pump1On) return stopPump(1);
-        //startPump(1, pump1Duration);
+        await StartPomp(1, 5);
     };
 
     const openTaskCreate = (pomp) => {
@@ -243,9 +256,17 @@ const PlantBigViewPomp = ({ navigation }) => {
         setEditorOpen(true);
     };
 
-    const handlePump2 = () => {
+    const handlePump2 = async () => {
         //if (pump1On) return stopPump(1);
-        //startPump(1, pump1Duration);
+
+        await StartPomp(2, 5);
+    };
+
+
+    const handlePump = async (pomp, time) => {
+        //if (pump1On) return stopPump(1);
+
+        await StartPomp(pomp, time);
     };
     return (
 
@@ -268,6 +289,7 @@ const PlantBigViewPomp = ({ navigation }) => {
                         <Text style={styles.description}>Güneşli alanları seven, suyu depolayan bir bitki türüdür.</Text>
                     </View>
 
+                    <ErrorMessage message={errorMessage}></ErrorMessage>
 
                     <Card>
                         <View style={styles.pompcontainer}>
@@ -275,8 +297,8 @@ const PlantBigViewPomp = ({ navigation }) => {
                                 <View style={styles.cell}>
                                     <IconButton
                                         icon={pump1On ? "water-pump" : "play-circle-outline"}
-                                        size={34}
-                                        onPress={handlePump1}
+                                        size={40}
+                                        onPress={() => handlePump1()}
                                         onLongPress={() => openDurationFor(1)}
 
                                         style={[styles.pumpBtn, { borderColor: "#00BFA5" }, pump1On && { borderWidth: 0 }]}
@@ -295,14 +317,13 @@ const PlantBigViewPomp = ({ navigation }) => {
                                         disabled={!isPomp1Open}
                                         onPress={() => openTaskCreate(1)}
                                     />
-                                    <Text style={styles.pumpLabel}></Text>
                                 </View>
 
                                 <View style={styles.cell}>
                                     <IconButton
                                         icon={pump1On ? "water-pump" : "play-circle-outline"}
-                                        size={34}
-                                        onPress={handlePump2}
+                                        size={40}
+                                        onPress={() => handlePump2()}
                                         onLongPress={() => openDurationFor(2)}
                                         style={[styles.pumpBtn, { borderColor: "#00BFA5" }, pump1On && { borderWidth: 0 }]}
                                         containerColor={pump1On ? "#00BFA5" : undefined}
@@ -320,7 +341,6 @@ const PlantBigViewPomp = ({ navigation }) => {
                                         disabled={!isPomp2Open}
                                         onPress={() => openTaskCreate(2)}
                                     />
-                                    <Text style={styles.pumpLabel}></Text>
                                 </View>
                             </View>
                         </View>
@@ -332,7 +352,6 @@ const PlantBigViewPomp = ({ navigation }) => {
                         </TouchableOpacity>*/
                     }
 
-                    <ErrorMessage message={errorMessage}></ErrorMessage>
 
                     <DurationDlg
 
@@ -340,6 +359,7 @@ const PlantBigViewPomp = ({ navigation }) => {
                         closeDuration={() => setdurationvisible(false)}
                         durationvisible={durationvisible}
                         defaultDuration={defaultDuration}
+                        confirmDuration={(e, t) => handlePump(e, t)}
                     ></DurationDlg>
 
                     <TaskEditor
@@ -357,113 +377,3 @@ const PlantBigViewPomp = ({ navigation }) => {
 }
 
 export default PlantBigViewPomp;
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#f4fdfd",
-        padding: 20
-    },
-    pompcontainer: {
-        padding: 10,
-    },
-    grid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-    },
-    cell: {
-        width: '45%',
-        height: 120,
-        backgroundColor: '#e0f2f1',
-        marginBottom: 12,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-    },
-    pumpLabel: {
-        marginTop: 8,
-        fontSize: 14,
-        color: '#00796b',
-        fontWeight: '600',
-    },
-    card: {
-        backgroundColor: '#f9f9f9',
-        borderRadius: 16,
-        padding: 10,
-        flexDirection: 'row',
-        alignItems: 'center',
-        elevation: 3,
-        marginVertical: 10,
-        justifyContent: 'space-between',
-    },
-    imageContainer: {
-        position: "relative",
-        alignItems: "center",
-        marginBottom: 20
-    },
-    image: {
-        width: 160,
-        height: 160,
-        borderRadius: 80,
-        borderWidth: 2,
-        borderColor: "#009688"
-    },
-    editIcon: {
-        position: "absolute",
-        bottom: 10,
-        right: screenWidth / 2 - 90,
-        backgroundColor: "#009688",
-        borderRadius: 20,
-        padding: 6
-    },
-    infoSection: {
-        alignItems: "center",
-        marginBottom: 20
-    },
-    name: {
-        fontSize: 24,
-        fontWeight: "bold",
-        color: "#00796b"
-    },
-    description: {
-        fontSize: 14,
-        color: "#555",
-        textAlign: "center",
-        marginTop: 5
-    },
-    chartSection: {
-        marginBottom: 30
-    },
-    chartTitle: {
-        fontSize: 16,
-        fontWeight: "bold",
-        marginBottom: 10,
-        color: "#00796b"
-    },
-    chart: {
-        borderRadius: 12
-    },
-    waterButton: {
-        backgroundColor: "#00796b",
-        marginHorizontal: 40,
-        borderRadius: 10,
-        marginBottom: 30
-    },
-    leftColumn: {
-        flex: 1,
-        alignItems: 'flex-start',
-        gap: 2,
-    },
-
-    middleColumn: {
-        alignItems: 'center',
-        marginHorizontal: 10,
-    },
-    rightColumn: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-});
-

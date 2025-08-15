@@ -10,22 +10,24 @@ import {
 
 import { useTranslation } from 'react-i18next';
 
-function DurationDlg({durationvisible, duration, closeDuration, confirmDuration, defaultDuration }) {
+function DurationDlg({ durationvisible, duration, closeDuration, confirmDuration, defaultDuration }) {
     const [durationDlg, setDurationDlg] = useState(duration);
     const [customSeconds, setCustomSeconds] = useState(String(defaultDuration));
 
     const { t, i18n } = useTranslation();
-    
-    const handleSave = () => {
 
-    };
+    const RunEngine = () => {
+
+        var time = (durationDlg.value == "custom" ?parseInt(customSeconds) : parseInt(durationDlg.value));
+        confirmDuration( duration.pump, time);
+    }
 
     return (
         <Portal>
             <Dialog visible={durationvisible} onDismiss={closeDuration}>
                 <Dialog.Icon icon="timer-cog-outline" />
                 <Dialog.Title>
-                    {durationDlg.pump === 1 ? "Pump 1" : "Pump 2"} {t("Duration")}
+                    {duration.pump === 1 ? "Pump 1" : "Pump 2"} {t("Duration")}
                 </Dialog.Title>
                 <Dialog.Content>
                     <SegmentedButtons
@@ -51,7 +53,7 @@ function DurationDlg({durationvisible, duration, closeDuration, confirmDuration,
                 </Dialog.Content>
                 <Dialog.Actions>
                     <Button onPress={closeDuration}>{t("Cancel")}</Button>
-                    <Button mode="contained" onPress={confirmDuration} icon="play">
+                    <Button mode="contained" onPress={() => RunEngine()} icon="play">
                         {t("Start")}
                     </Button>
                 </Dialog.Actions>
