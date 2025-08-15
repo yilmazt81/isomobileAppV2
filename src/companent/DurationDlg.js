@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Button,
     Dialog,
@@ -7,10 +7,11 @@ import {
     SegmentedButtons,
     TextInput,
 } from "react-native-paper";
+import ErrorMessage from "./ErrorMessage";
 
 import { useTranslation } from 'react-i18next';
 
-function DurationDlg({ durationvisible, duration, closeDuration, confirmDuration, defaultDuration }) {
+function DurationDlg({  duration, closeDuration, confirmDuration, defaultDuration, errorMessage }) {
     const [durationDlg, setDurationDlg] = useState(duration);
     const [customSeconds, setCustomSeconds] = useState(String(defaultDuration));
 
@@ -18,13 +19,15 @@ function DurationDlg({ durationvisible, duration, closeDuration, confirmDuration
 
     const RunEngine = () => {
 
-        var time = (durationDlg.value == "custom" ?parseInt(customSeconds) : parseInt(durationDlg.value));
-        confirmDuration( duration.pump, time);
+        var time = (durationDlg.value == "custom" ? parseInt(customSeconds) : parseInt(durationDlg.value));
+        confirmDuration(duration.pump, time);
     }
-
+    useEffect(() => {
+        setDurationDlg(duration);
+    }, [duration]);
     return (
         <Portal>
-            <Dialog visible={durationvisible} onDismiss={closeDuration}>
+            <Dialog visible={duration.open} onDismiss={closeDuration}>
                 <Dialog.Icon icon="timer-cog-outline" />
                 <Dialog.Title>
                     {duration.pump === 1 ? "Pump 1" : "Pump 2"} {t("Duration")}
@@ -50,6 +53,8 @@ function DurationDlg({ durationvisible, duration, closeDuration, confirmDuration
                             onChangeText={setCustomSeconds}
                         />
                     )}
+
+                    <ErrorMessage message={errorMessage}></ErrorMessage>
                 </Dialog.Content>
                 <Dialog.Actions>
                     <Button onPress={closeDuration}>{t("Cancel")}</Button>

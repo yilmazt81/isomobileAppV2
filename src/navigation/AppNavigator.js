@@ -23,7 +23,7 @@ import PlantBigView from '../screens/Devicescreen/Plantvase/PlantBigView'; // ye
 import ManuelSetting from '../screens/ManuelSetting/ManuelSettingScreen'; // yeni ekran
 import ForgotPasswordScreen from '../screens/ForgotPassword/forgotPasswordScreen';
 import PlantBigViewPomp from '../screens/Devicescreen/PlantWater2Pomp/PlantBigViewPomp'; 
-
+import { useTranslation } from 'react-i18next';
 const AuthStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();

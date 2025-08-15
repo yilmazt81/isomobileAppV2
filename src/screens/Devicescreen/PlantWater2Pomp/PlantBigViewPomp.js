@@ -36,11 +36,10 @@ import {
     Surface,
     Switch,
     Text,
-    TextInput,
     useTheme,
 } from "react-native-paper";
 
-
+import mqttService from '../../../lib/mqttService';
 
 
 const PlantBigViewPomp = ({ navigation }) => {
@@ -58,7 +57,8 @@ const PlantBigViewPomp = ({ navigation }) => {
     const clientRef = useRef(null);
     const [isPomp1Open, setisPomp1Open] = useState(false);
     const [isPomp2Open, setisPomp2Open] = useState(false);
-
+    const [pump1Remaining,setpump1Remaining]=useState(0);
+    const [pump2Remaining,setpump2Remaining]=useState(0);
     const [connected, setConnected] = useState(false);
     const [imageUri, setImageUri] = useState(null);
     const [transferred, setTransferred] = useState(0);
@@ -66,7 +66,7 @@ const PlantBigViewPomp = ({ navigation }) => {
     const [durationDlg, setDurationDlg] = useState({ open: false, pump: 1, value: String(defaultDuration) });
     const [pump1On, setPump1On] = useState(false);
     const [pump2On, setPump2On] = useState(false);
-    const [durationvisible, setdurationvisible] = useState(false);
+
 
 
 
@@ -116,13 +116,7 @@ const PlantBigViewPomp = ({ navigation }) => {
         }
         console.log(Config.mqttwebsocket);
         console.log(Config.mqttWebSocketport);
-        clientRef.current = mqtt.connect(Config.mqttwebsocket, {
-            port: Config.mqttWebSocketport,
-            clientId: userid,
-            username: Config.mqtt_username,    // eğer auth varsa
-            password: Config.mqtt_password,    // eğer auth varsa
-            rejectUnauthorized: false, // self-signed cert için
-        });
+        clientRef.current = mqttService.connect(userid);
 
         clientRef.current.on('connect', () => {
 
@@ -161,7 +155,8 @@ const PlantBigViewPomp = ({ navigation }) => {
     }
 
     const StartPomp = async (pompnumber, time) => {
-        const mqttClient = clientRef.current;
+        const mqttClient = mqttService.getClient();
+        setErrorMessage(null);
 
         if (!mqttClient) {
             console.warn('MQTT client henüz bağlanmadı.');
@@ -185,6 +180,16 @@ const PlantBigViewPomp = ({ navigation }) => {
                 setErrorMessage(`Publish Hatası: ${error.message}`);
             } else {
                 setDurationDlg({ open: false, pump: pompnumber, value: String("") });
+                if (pompnumber === 1) {
+                    setPump1On(true);
+                    setpump1Remaining(time);
+                    
+                } else if (pompnumber === 2) {
+                    setPump2On(true);
+                    setpump2Remaining(time);
+                }
+
+
                 //setErrorMessage(`Komut gönderildi: ${JSON.stringify(command)}`);
             }
         });
@@ -193,9 +198,9 @@ const PlantBigViewPomp = ({ navigation }) => {
 
     const uploadImage = async (uri) => {
 
-
         const filename = uri.substring(uri.lastIndexOf('/') + 1);
         const uploadUri = Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+        setErrorMessage(null);
 
         setUploading(true);
         setTransferred(0);
@@ -225,8 +230,6 @@ const PlantBigViewPomp = ({ navigation }) => {
         setImageUri(downloadUrl);
 
 
-
-
     };
 
     useEffect(() => {
@@ -237,22 +240,15 @@ const PlantBigViewPomp = ({ navigation }) => {
 
 
     const openDurationFor = (pumpNnumber) => {
-        //const current = pump === 1 ? pump1Duration : pump2Duration;
         setDurationDlg({ open: true, pump: pumpNnumber, value: String("") });
-
-        setdurationvisible(true);
-
-        // setCustomSeconds(String(current));
 
     };
 
     const handlePump1 = async () => {
-        //if (pump1On) return stopPump(1);
         await StartPomp(1, 5);
     };
 
     const openTaskCreate = (pomp) => {
-        //setEditing(undefined);
         setEditorOpen(true);
     };
 
@@ -267,6 +263,9 @@ const PlantBigViewPomp = ({ navigation }) => {
         //if (pump1On) return stopPump(1);
 
         await StartPomp(pomp, time);
+
+        setDurationDlg({ open: false, pump: pomp, value: defaultDuration });
+
     };
     return (
 
@@ -321,13 +320,13 @@ const PlantBigViewPomp = ({ navigation }) => {
 
                                 <View style={styles.cell}>
                                     <IconButton
-                                        icon={pump1On ? "water-pump" : "play-circle-outline"}
+                                        icon={pump2On ? "water-pump" : "play-circle-outline"}
                                         size={40}
                                         onPress={() => handlePump2()}
                                         onLongPress={() => openDurationFor(2)}
-                                        style={[styles.pumpBtn, { borderColor: "#00BFA5" }, pump1On && { borderWidth: 0 }]}
-                                        containerColor={pump1On ? "#00BFA5" : undefined}
-                                        iconColor={pump1On ? "white" : "#00BFA5"}
+                                        style={[styles.pumpBtn, { borderColor: "#00BFA5" }, pump2On && { borderWidth: 0 }]}
+                                        containerColor={pump2On ? "#00BFA5" : undefined}
+                                        iconColor={pump2On ? "white" : "#00BFA5"}
                                         disabled={!isPomp2Open}
                                     />
                                     <Text style={styles.pumpLabel}>{pump2On ? `${pump2Remaining}s` : "Pompa 2"}</Text>
@@ -356,10 +355,11 @@ const PlantBigViewPomp = ({ navigation }) => {
                     <DurationDlg
 
                         duration={durationDlg}
-                        closeDuration={() => setdurationvisible(false)}
-                        durationvisible={durationvisible}
+                        closeDuration={() => setDurationDlg({ ...duration, open: false, value: defaultDuration })}
+
                         defaultDuration={defaultDuration}
                         confirmDuration={(e, t) => handlePump(e, t)}
+                        errorMessage={errorMessage}
                     ></DurationDlg>
 
                     <TaskEditor
