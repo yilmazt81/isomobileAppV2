@@ -11,9 +11,9 @@ import mqtt from 'mqtt';
 //import StatusCard from './StatusCard';
 import { useRoute } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
-import storage from '@react-native-firebase/storage';
-import styles from './PlantBigViewPompStyle';
 
+import styles from './PlantBigViewPompStyle';
+import firestore from '@react-native-firebase/firestore';
 import ErrorMessage from '../../../companent/ErrorMessage';
 import TaskEditor from '../../../companent/TaskEditor';
 import DurationDlg from '../../../companent/DurationDlg';
@@ -49,7 +49,7 @@ const PlantBigViewPomp = ({ navigation }) => {
     const [editorOpen, setEditorOpen] = useState(false);
 
     const { t, i18n } = useTranslation();
-    const { deviceid = '', devicename = '', userid } = route.params || {};
+    const { deviceid = '', devicename = '', userid, firebasedocumentid } = route.params || {};
     const [message, setMessage] = useState(t("Connecting"));
     const [errorMessage, setErrorMessage] = useState(null);
     const [editing, setEditing] = useState(undefined);
@@ -57,8 +57,8 @@ const PlantBigViewPomp = ({ navigation }) => {
     const clientRef = useRef(null);
     const [isPomp1Open, setisPomp1Open] = useState(false);
     const [isPomp2Open, setisPomp2Open] = useState(false);
-    const [pump1Remaining,setpump1Remaining]=useState(0);
-    const [pump2Remaining,setpump2Remaining]=useState(0);
+    const [pump1Remaining, setpump1Remaining] = useState(0);
+    const [pump2Remaining, setpump2Remaining] = useState(0);
     const [connected, setConnected] = useState(false);
     const [imageUri, setImageUri] = useState(null);
     const [transferred, setTransferred] = useState(0);
@@ -183,7 +183,7 @@ const PlantBigViewPomp = ({ navigation }) => {
                 if (pompnumber === 1) {
                     setPump1On(true);
                     setpump1Remaining(time);
-                    
+
                 } else if (pompnumber === 2) {
                     setPump2On(true);
                     setpump2Remaining(time);
@@ -267,6 +267,33 @@ const PlantBigViewPomp = ({ navigation }) => {
         setDurationDlg({ open: false, pump: pomp, value: defaultDuration });
 
     };
+
+
+
+    const UpdatePompStatus = async (data) => {
+        try {
+
+            await firestore()
+                .collection('Device')
+                .doc(firebasedocumentid) // doküman ID
+                .update(data);
+            console.log('Güncelleme başarılı!');
+        } catch (error) {
+            console.error('Update hatası: ', error);
+        }
+    };
+
+    const changePompStatus = async (pumpNumber, status) => {
+
+        if (pumpNumber === 1) {
+            setisPomp1Open(status);
+            await UpdatePompStatus({ pomp1: status });
+        } else if (pumpNumber === 2) {
+            setisPomp2Open(status);
+            await UpdatePompStatus({ pomp2: status });
+        }
+
+    }
     return (
 
         <LinearGradient colors={['#090979', '#00D4FF', '#020024']} style={styles.container}>
@@ -307,7 +334,7 @@ const PlantBigViewPomp = ({ navigation }) => {
                                     />
                                     <Text style={styles.pumpLabel}>{pump1On ? `${pump1Remaining}s` : "Pompa 1"}</Text>
 
-                                    <Switch value={isPomp1Open} onValueChange={() => setisPomp1Open(!isPomp1Open)} />;
+                                    <Switch value={isPomp1Open} onValueChange={(e) => changePompStatus(1, e)} />;
                                 </View>
 
                                 <View style={styles.cell}>
@@ -330,7 +357,7 @@ const PlantBigViewPomp = ({ navigation }) => {
                                         disabled={!isPomp2Open}
                                     />
                                     <Text style={styles.pumpLabel}>{pump2On ? `${pump2Remaining}s` : "Pompa 2"}</Text>
-                                    <Switch value={isPomp2Open} onValueChange={() => setisPomp2Open(!isPomp2Open)} />;
+                                    <Switch value={isPomp2Open} onValueChange={(e) => changePompStatus(2, e)} />;
                                 </View>
 
                                 <View style={styles.cell}>

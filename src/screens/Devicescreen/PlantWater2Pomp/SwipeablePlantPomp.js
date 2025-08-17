@@ -74,7 +74,7 @@ const deleteStyles = StyleSheet.create({
   },
 });
 
-const SwipeablePlantPomp = ({ device, onDelete, onPress, t, userid }) => {
+const SwipeablePlantPomp = ({ device, onDelete, onPress, t, userid,firebasedocumentid }) => {
 
 
   return (
@@ -88,6 +88,7 @@ const SwipeablePlantPomp = ({ device, onDelete, onPress, t, userid }) => {
         deviceid={device.deviceid}
         deviceType={device.devicetype}
         userid={userid}
+        firebasedocumentid={firebasedocumentid}
       />
     </SwipeableItem>
   );

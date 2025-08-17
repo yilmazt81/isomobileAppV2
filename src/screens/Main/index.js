@@ -29,12 +29,12 @@ const HomeScreen = ({ navigation }) => {
     const { t, i18n } = useTranslation();
     const [userid, setUserid] = useState(null);
 
-   // const { isWifi, isConnected, hasInternet } = useWifiInternetStatus();
+    // const { isWifi, isConnected, hasInternet } = useWifiInternetStatus();
 
-    const { isWifi } =useState(true);
-    const { isConnected } =useState(true);
-    const { hasInternet } =useState(true);
-    
+    const { isWifi } = useState(true);
+    const { isConnected } = useState(true);
+    const { hasInternet } = useState(true);
+
     const addDeviceToCloud = async () => {
         var dbdeviceList = await Database.getDeviceList();
 
@@ -128,7 +128,8 @@ const HomeScreen = ({ navigation }) => {
                                 deviceid: device.deviceid,
                                 deviceType: device.devicetype,
                                 devicename: device.devicename,
-                                userid: userid
+                                userid: userid,
+                                firebasedocumentid: device.id
                             })
                         }
                     />
@@ -205,7 +206,8 @@ const HomeScreen = ({ navigation }) => {
                                 deviceid: device.deviceid,
                                 deviceType: device.devicetype,
                                 devicename: device.devicename,
-                                userid: userid
+                                userid: userid,
+                                firebasedocumentid: device.id
                             })
                         }
                     />
