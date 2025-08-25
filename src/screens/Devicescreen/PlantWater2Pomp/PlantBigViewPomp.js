@@ -14,6 +14,7 @@ import LinearGradient from 'react-native-linear-gradient';
 
 import styles from './PlantBigViewPompStyle';
 import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
 import ErrorMessage from '../../../companent/ErrorMessage';
 import TaskEditor from '../../../companent/TaskEditor';
 import DurationDlg from '../../../companent/DurationDlg';
@@ -66,6 +67,7 @@ const PlantBigViewPomp = ({ navigation }) => {
     const [durationDlg, setDurationDlg] = useState({ open: false, pump: 1, value: String(defaultDuration) });
     const [pump1On, setPump1On] = useState(false);
     const [pump2On, setPump2On] = useState(false);
+    const [selectedPomp, setSelectedPomp] = useState(1);
 
 
 
@@ -91,7 +93,9 @@ const PlantBigViewPomp = ({ navigation }) => {
         launchCamera({ mediaType: 'photo' }, (response) => {
             if (response.didCancel || !response.assets) return;
             const uri = response.assets[0].uri;
+            debugger;
             setImageUri(uri);
+            //Alert.alert(uri);
             uploadImage(uri);
         });
     };
@@ -197,7 +201,7 @@ const PlantBigViewPomp = ({ navigation }) => {
 
 
     const uploadImage = async (uri) => {
-
+        debugger;
         const filename = uri.substring(uri.lastIndexOf('/') + 1);
         const uploadUri = Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
         setErrorMessage(null);
@@ -226,17 +230,38 @@ const PlantBigViewPomp = ({ navigation }) => {
         setUploading(false);
 
         const downloadUrl = await storage().ref(filename).getDownloadURL();
-
+        Alert.alert("Resim Yüklendi", downloadUrl, [{ text: "Tamam" }]);
+        console.log("Resim URL:", downloadUrl);
         setImageUri(downloadUrl);
-
-
+        debugger;
+        await UpdatePompStatus({ picture: downloadUrl });
     };
 
-    useEffect(() => {
+    useEffect(async () => {
+        await getDevice();
         connectMqtt();
 
     }, []);
 
+
+    const getDevice = async () => {
+        try {
+            const docRef = firestore().collection('Device').doc(firebasedocumentid); // koleksiyon ve doküman id
+            const docSnap = await docRef.get();
+
+            if (docSnap.exists) {
+                console.log("Kullanıcı verisi:", docSnap.data());
+                var data = docSnap.data();
+                setisPomp1Open(data?.pomp1);
+                setisPomp2Open(data?.pomp2);
+            } else {
+                console.log("Böyle bir doküman yok!");
+            }
+        } catch (error) {
+            console.error("Doküman okunamadı: ", error);
+            setErrorMessage(error.message);
+        }
+    };
 
 
     const openDurationFor = (pumpNnumber) => {
@@ -249,6 +274,8 @@ const PlantBigViewPomp = ({ navigation }) => {
     };
 
     const openTaskCreate = (pomp) => {
+
+        setSelectedPomp(pomp);
         setEditorOpen(true);
     };
 
@@ -294,6 +321,44 @@ const PlantBigViewPomp = ({ navigation }) => {
         }
 
     }
+
+    const updatePompTask = async (task) => {
+
+
+        var workingDays = "";
+        if (task.repeat.type === "weekly") {
+            for (let i = 0; i < task.repeat.days.length; i++) {
+
+                workingDays += task.repeat.days[i] + ",";
+
+            }
+        }
+        if (task.pompnumber === 1) {
+            debugger;
+            var updatedata = {
+                Pomp1WorkingHour: task.nextRun.getHours(),
+                Pomp1WorkingMinute: task.nextRun.getMinutes(),
+                Pomp1WorkingPeriod: task.repeat.type,
+                Pomp1WorkingDays: workingDays,
+                Pomp1WorkingDuration: task.durationValue,
+
+            };
+            debugger;
+            UpdatePompStatus(updatedata);
+        } else {
+            debugger;
+            var updatedata = {
+                Pomp2WorkingHour: task.nextRun.getHours(),
+                Pomp2WorkingMinute: task.nextRun.getMinutes(),
+                Pomp2WorkingPeriod: task.repeat.type,
+                Pomp2WorkingDays: workingDays,
+                Pomp2WorkingDuration: task.durationValue,
+            };
+
+            UpdatePompStatus(updatedata);
+        }
+        setEditorOpen(false);
+    }
     return (
 
         <LinearGradient colors={['#090979', '#00D4FF', '#020024']} style={styles.container}>
@@ -310,7 +375,7 @@ const PlantBigViewPomp = ({ navigation }) => {
                     </View>
 
                     <View style={styles.infoSection}>
-                        <Text style={styles.name}> {devicename} </Text>
+                        <Text style={styles.name}>{devicename}</Text>
                         <Text style={styles.name}>Aloe Vera</Text>
                         <Text style={styles.description}>Güneşli alanları seven, suyu depolayan bir bitki türüdür.</Text>
                     </View>
@@ -334,7 +399,7 @@ const PlantBigViewPomp = ({ navigation }) => {
                                     />
                                     <Text style={styles.pumpLabel}>{pump1On ? `${pump1Remaining}s` : "Pompa 1"}</Text>
 
-                                    <Switch value={isPomp1Open} onValueChange={(e) => changePompStatus(1, e)} />;
+                                    <Switch value={isPomp1Open} onValueChange={(e) => changePompStatus(1, e)} />
                                 </View>
 
                                 <View style={styles.cell}>
@@ -357,7 +422,7 @@ const PlantBigViewPomp = ({ navigation }) => {
                                         disabled={!isPomp2Open}
                                     />
                                     <Text style={styles.pumpLabel}>{pump2On ? `${pump2Remaining}s` : "Pompa 2"}</Text>
-                                    <Switch value={isPomp2Open} onValueChange={(e) => changePompStatus(2, e)} />;
+                                    <Switch value={isPomp2Open} onValueChange={(e) => changePompStatus(2, e)} />
                                 </View>
 
                                 <View style={styles.cell}>
@@ -393,7 +458,8 @@ const PlantBigViewPomp = ({ navigation }) => {
                         visible={editorOpen}
                         defaultDuration={defaultDuration}
                         onDismiss={() => setEditorOpen(false)}
-                        // onSave={upsertTask}
+                        pomp={selectedPomp}
+                        onSave={(e) => updatePompTask(e)}
                         initial={editing}
                         t={t}
                     />

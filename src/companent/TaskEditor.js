@@ -26,13 +26,14 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import styles from './TaskEditorStyle'; // Adjust the import path as necessary
 
 
-function TaskEditor({ visible, onDismiss, onSave, initial, t }) {
+function TaskEditor({ visible, onDismiss, onSave, initial, t,pomp ,defaultDuration}) {
   const { colors } = useTheme();
 
   const [enabled, setEnabled] = useState(initial?.enabled ?? true);
   const [nextRun, setNextRun] = useState(initial?.nextRun ?? new Date());
-  const [durationDlg, setDurationDlg] = useState();
-  const [customSeconds, setcustomSeconds] = useState();
+  const [durationDlg, setDurationDlg] = useState({value: defaultDuration.toString()});
+  const [customSeconds, setcustomSeconds] = useState("150");
+ 
   const [repeatType, setRepeatType] = useState(
     initial?.repeat?.type ?? "daily"
   );
@@ -59,7 +60,7 @@ function TaskEditor({ visible, onDismiss, onSave, initial, t }) {
     `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
       d.getHours()
     )}:${pad(d.getMinutes())}`;
-
+/*
   const repeatToLabel = (r) => {
     if (!r) return "—";
     switch (r.type) {
@@ -77,20 +78,26 @@ function TaskEditor({ visible, onDismiss, onSave, initial, t }) {
         return "—";
     }
   };
-
+*/
   const weekDays = [t("Sun"), t("Mon"), t("Tue"), t("Wed"), t("Thu"), t("Fri"), t("Sat")];
 
 
   const handleSave = () => {
-    const task = {
-      id: initial?.id ?? Math.random().toString(36).slice(2),
-      title: title.trim() || "Untitled",
-      note: note.trim(),
+
+    var durationValue = 0;
+    if (durationDlg.value === "custom") {
+        durationValue =customSeconds ;
+    }else{
+       durationValue =  parseInt(durationDlg.value);
+    }
+    const task = { 
+      pompnumber:pomp,
       enabled,
       nextRun,
       repeat,
-      color: initial?.color ?? undefined,
-    };
+      durationValue, 
+    }; 
+    
     onSave(task);
     onDismiss();
   };
@@ -103,7 +110,7 @@ function TaskEditor({ visible, onDismiss, onSave, initial, t }) {
         contentContainerStyle={styles.modalContainer}
       >
         <Text variant="titleLarge" style={{ marginBottom: 12 }}>
-          {t("PompTask")}
+         {pomp} {t("PompTask")}
         </Text>
         <View
           style={{

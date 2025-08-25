@@ -114,7 +114,7 @@ const HomeScreen = ({ navigation }) => {
         return (
             <TouchableOpacity
                 key={device.id}
-                style={{ width: '100%', marginBottom: 10 }} // tam genişlik, alt boşluk
+                style={{ width: '100%', marginBottom: 10 }}
                 activeOpacity={0.8}
             >    <View style={{ width: '100%' }}>
 
@@ -191,7 +191,7 @@ const HomeScreen = ({ navigation }) => {
         return (
             <TouchableOpacity
                 key={device.id}
-                style={{ width: '100%', marginBottom: 10 }} // tam genişlik, alt boşluk
+                style={{ width: '100%', marginBottom: 10 }}
                 activeOpacity={0.8}
 
             >    <View style={{ width: '100%' }}>
@@ -248,7 +248,7 @@ const HomeScreen = ({ navigation }) => {
                         if (device.devicetype === 'SmartVaseV1') {
                             return CreateViewVaseV1(device)
                         } else if (device.devicetype === 'SmartVase2Multi') {
-                            return CreateViewPlantWater2Pomp(device);
+                            return CreateViewPlantWater2Pomp(device)
                         } else {
                             return null;
                         }
@@ -256,11 +256,11 @@ const HomeScreen = ({ navigation }) => {
                 }
 
                 {isWifi && hasInternet ? <LottieView source={require('../assets/Online_Offline.json')}
-                    autoPlay loop style={{ width: 150, height: 150, alignSelf: 'center' }}></LottieView> : ""}
+                    autoPlay loop style={{ width: 150, height: 150, alignSelf: 'center' }}></LottieView> :  null}
 
             </ScrollView>
         </LinearGradient >
-    );
+    )
 };
 
 const styles = StyleSheet.create({
