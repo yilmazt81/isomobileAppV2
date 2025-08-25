@@ -193,7 +193,6 @@ const PlantBigViewPomp = ({ navigation }) => {
                     setpump2Remaining(time);
                 }
 
-
                 //setErrorMessage(`Komut gönderildi: ${JSON.stringify(command)}`);
             }
         });
@@ -334,7 +333,6 @@ const PlantBigViewPomp = ({ navigation }) => {
             }
         }
         if (task.pompnumber === 1) {
-            debugger;
             var updatedata = {
                 Pomp1WorkingHour: task.nextRun.getHours(),
                 Pomp1WorkingMinute: task.nextRun.getMinutes(),
@@ -343,10 +341,8 @@ const PlantBigViewPomp = ({ navigation }) => {
                 Pomp1WorkingDuration: task.durationValue,
 
             };
-            debugger;
             UpdatePompStatus(updatedata);
         } else {
-            debugger;
             var updatedata = {
                 Pomp2WorkingHour: task.nextRun.getHours(),
                 Pomp2WorkingMinute: task.nextRun.getMinutes(),
@@ -357,7 +353,66 @@ const PlantBigViewPomp = ({ navigation }) => {
 
             UpdatePompStatus(updatedata);
         }
+
         setEditorOpen(false);
+        await sendSettingToDevice();
+    }
+
+    const sendSettingToDevice = async () => {
+
+        try {
+            const docRef = firestore().collection('Device').doc(firebasedocumentid); // koleksiyon ve doküman id
+            const docSnap = await docRef.get();
+
+            if (docSnap.exists) {
+                console.log("Kullanıcı verisi:", docSnap.data());
+                var data = docSnap.data();
+
+                const command = {
+                    command: 'SaveSetting',
+                    p1En: data?.pomp1,
+                    p2En: data?.pomp2,
+                    P1SH: data?.Pomp1WorkingHour,
+                    P1SM: data?.Pomp1WorkingMinute,
+                    P1RT: data?.Pomp1WorkingPeriod,
+                    PW1WD: data?.Pomp1WorkingDays,
+                    P2SH: data?.Pomp2WorkingHour,
+                    P2SM: data?.Pomp2WorkingMinute,
+                    PW2WD: data?.Pomp2WorkingDays,
+                    P2WT: data?.Pomp1WorkingDuration,
+                    P1WT: data?.Pomp1WorkingDuration,
+                };
+                sendCommandToDevice(command);
+            } else {
+                console.log("Böyle bir doküman yok!");
+            }
+        } catch (error) {
+            console.error("Doküman okunamadı: ", error);
+            setErrorMessage(error.message);
+        }
+
+    }
+
+    const sendCommandToDevice = async (command) => {
+        debugger;
+        const mqttClient = mqttService.getClient();
+        setErrorMessage(null);
+
+        if (!mqttClient) {
+            console.warn('MQTT client henüz bağlanmadı.');
+            setErrorMessage("MQTT client henüz bağlanmadı.")
+            return;
+        }
+        var topic = deviceid + '/command';
+
+        mqttClient.publish(topic, JSON.stringify(command), { qos: 1 }, (error) => {
+
+            if (error) {
+                console.error('Publish Hatası:', error);
+
+                setErrorMessage(`Publish Hatası: ${error.message}`);
+            }
+        });
     }
     return (
 
