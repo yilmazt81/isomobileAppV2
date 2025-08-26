@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { View, FlatList, StyleSheet, Platform } from "react-native";
 import {
   Appbar,
@@ -26,14 +26,14 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import styles from './TaskEditorStyle'; // Adjust the import path as necessary
 
 
-function TaskEditor({ visible, onDismiss, onSave, initial, t,pomp ,defaultDuration}) {
+function TaskEditor({ visible, onDismiss, onSave, initial, t, pomp, defaultDuration }) {
   const { colors } = useTheme();
 
   const [enabled, setEnabled] = useState(initial?.enabled ?? true);
   const [nextRun, setNextRun] = useState(initial?.nextRun ?? new Date());
-  const [durationDlg, setDurationDlg] = useState({value: defaultDuration.toString()});
+  const [durationDlg, setDurationDlg] = useState({ value: "" });
   const [customSeconds, setcustomSeconds] = useState("150");
- 
+
   const [repeatType, setRepeatType] = useState(
     initial?.repeat?.type ?? "daily"
   );
@@ -46,6 +46,7 @@ function TaskEditor({ visible, onDismiss, onSave, initial, t,pomp ,defaultDurati
 
   const [showDate, setShowDate] = useState(false);
   const [showTime, setShowTime] = useState(false);
+  const [enableDate, setEnableDate] = useState(true);
 
   const repeat = useMemo(() => {
     if (repeatType === "weekly") return { type: "weekly", days: weeklyDays };
@@ -60,48 +61,70 @@ function TaskEditor({ visible, onDismiss, onSave, initial, t,pomp ,defaultDurati
     `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
       d.getHours()
     )}:${pad(d.getMinutes())}`;
-/*
-  const repeatToLabel = (r) => {
-    if (!r) return "—";
-    switch (r.type) {
-      case "once":
-        return "Once";
-      case "daily":
-        return "Daily";
-      case "weekly":
-        return `Weekly • ${(r.days || [])
-          .slice()
-          .sort()
-          .map((n) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][n])
-          .join("/")}`;
-      default:
-        return "—";
-    }
-  };
-*/
+  /*
+    const repeatToLabel = (r) => {
+      if (!r) return "—";
+      switch (r.type) {
+        case "once":
+          return "Once";
+        case "daily":
+          return "Daily";
+        case "weekly":
+          return `Weekly • ${(r.days || [])
+            .slice()
+            .sort()
+            .map((n) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][n])
+            .join("/")}`;
+        default:
+          return "—";
+      }
+    };
+  */
   const weekDays = [t("Sun"), t("Mon"), t("Tue"), t("Wed"), t("Thu"), t("Fri"), t("Sat")];
 
+
+
+  useEffect(() => {
+    setEnabled(initial?.enabled ?? true);
+    setNextRun(initial?.nextRun ?? new Date());
+    if (initial?.durationValue > 120) {
+      setDurationDlg({ value: "custom", });
+      setcustomSeconds(initial?.durationValue);
+    } else {
+      setDurationDlg({ value: initial?.durationValue.toString() });
+    }
+ 
+    setRepeatType(initial?.repeat?.type ?? "daily");
+    setWeeklyDays(
+      initial?.repeat?.type === "weekly" ? [...(initial.repeat.days || [])] : [1]
+    )
+  }, [initial]);
 
   const handleSave = () => {
 
     var durationValue = 0;
     if (durationDlg.value === "custom") {
-        durationValue =customSeconds ;
-    }else{
-       durationValue =  parseInt(durationDlg.value);
+      durationValue = customSeconds;
+    } else {
+      durationValue = parseInt(durationDlg.value);
     }
-    const task = { 
-      pompnumber:pomp,
+    const task = {
+      pompnumber: pomp,
       enabled,
       nextRun,
       repeat,
-      durationValue, 
-    }; 
-    
+      durationValue,
+    };
+
     onSave(task);
     onDismiss();
   };
 
+  const changedRepeatType = (v) => {
+    setRepeatType(v);
+    setEnableDate(v === "once");
+
+  }
   return (
     <Portal>
       <Modal
@@ -110,7 +133,7 @@ function TaskEditor({ visible, onDismiss, onSave, initial, t,pomp ,defaultDurati
         contentContainerStyle={styles.modalContainer}
       >
         <Text variant="titleLarge" style={{ marginBottom: 12 }}>
-         {pomp} {t("PompTask")}
+          {pomp} {t("PompTask")}
         </Text>
         <View
           style={{
@@ -138,6 +161,7 @@ function TaskEditor({ visible, onDismiss, onSave, initial, t,pomp ,defaultDurati
           <DateTimePicker
             value={nextRun}
             mode="date"
+            enabled={enableDate}
             display={Platform.OS === "ios" ? "inline" : "default"}
             onChange={(e, d) => {
               setShowDate(false);
@@ -180,7 +204,7 @@ function TaskEditor({ visible, onDismiss, onSave, initial, t,pomp ,defaultDurati
         </Text>
         <SegmentedButtons
           value={repeatType}
-          onValueChange={(v) => setRepeatType(v)}
+          onValueChange={(v) => changedRepeatType(v)}
           buttons={[
             { value: "once", label: t("Ones") },
             { value: "daily", label: t("Daily") },

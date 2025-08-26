@@ -22,7 +22,7 @@ import WifiScannerScreen from '../screens/WifiScanner/WifiScannerScreen'; // yen
 import PlantBigView from '../screens/Devicescreen/Plantvase/PlantBigView'; // yeni ekran
 import ManuelSetting from '../screens/ManuelSetting/ManuelSettingScreen'; // yeni ekran
 import ForgotPasswordScreen from '../screens/ForgotPassword/forgotPasswordScreen';
-import PlantBigViewPomp from '../screens/Devicescreen/PlantWater2Pomp/PlantBigViewPomp'; 
+import PlantBigViewPomp from '../screens/Devicescreen/PlantWater2Pomp/PlantBigViewPomp';
 import { useTranslation } from 'react-i18next';
 const AuthStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -43,6 +43,7 @@ const AuthStackScreen = () => (
 
 const DashboardStack = () => {
   const { setUserToken } = useContext(AuthContext); // 🔑
+  const { t, i18n } = useTranslation();
 
   const logout = () => {
     auth()
@@ -58,7 +59,7 @@ const DashboardStack = () => {
         name="DashboardTabs"
         component={TabNavigator}
         options={({ navigation }) => ({
-          title: 'Dashboard',
+          title: t("Dashboard"),
           headerLeft: () => (
             <MaterialDesignIcons
               name="menu"
@@ -91,7 +92,7 @@ const DashboardStack = () => {
       <Stack.Screen name="WifiScanner" component={WifiScannerScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen name="ManuelSetting" component={ManuelSetting} />
       <Stack.Screen name="PlantBigView" component={PlantBigView} title="Bitki Özellikleri" />
-      <Stack.Screen name='PlantBigViewPomp' component={PlantBigViewPomp}></Stack.Screen>
+      <Stack.Screen name='PlantBigViewPomp' options={()=>({title:t("MultipompSettings")})} component={PlantBigViewPomp}></Stack.Screen>
       <Stack.Screen name='Home' component={HomeScreen}></Stack.Screen>
     </Stack.Navigator>
   );

@@ -11,7 +11,7 @@ import { getMoistureIcon, interpolateColor, getTemperatureColor, getSoilMoisture
 
 
 
-const PlantSmallViewPomp = ({ plantName, deviceid, userid }) => {
+const PlantSmallViewPomp = ({ plantName, deviceid, userid,pomp1status,pomp2status }) => {
 
     const { t, i18n } = useTranslation();
 
@@ -89,13 +89,13 @@ const PlantSmallViewPomp = ({ plantName, deviceid, userid }) => {
                     <Text style={styles.plantName}>{plantName}</Text>
                 </View>
                 <View style={styles.middleColumn}>
-                    <MaterialDesignIcons name='engine-outline' size={50} color='#1de42aff' />
+                    <MaterialDesignIcons name='engine-outline' size={50} color={pomp1status?'#1de42aff':'#ed0404ff'} />
 
                 </View>
 
                 {/* Orta - sıcaklık */}
                 <View style={styles.middleColumn}>
-                    <MaterialDesignIcons name='engine-outline' size={50} color='#1de42aff' />
+                    <MaterialDesignIcons name='engine-outline' size={50} color={pomp2status?'#1de42aff':'#ed0404ff'}  />
                 </View>
             </View>
 

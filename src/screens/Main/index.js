@@ -31,9 +31,9 @@ const HomeScreen = ({ navigation }) => {
 
     // const { isWifi, isConnected, hasInternet } = useWifiInternetStatus();
 
-    const { isWifi } = useState(true);
-    const { isConnected } = useState(true);
-    const { hasInternet } = useState(true);
+    const [isWifi, setIsWifi] = useState(false);
+    const [isConnected, setIsConnected] = useState(false);
+    const [hasInternet, setHasInternet] = useState(false);
 
     const addDeviceToCloud = async () => {
         var dbdeviceList = await Database.getDeviceList();
@@ -201,6 +201,8 @@ const HomeScreen = ({ navigation }) => {
                         t={t}
                         onDelete={handleDelete}
                         userid={userid}
+                        pomp1status ={device?.pomp1}
+                        pomp2status ={device?.pomp2}
                         onPress={() =>
                             navigation.navigate('PlantBigViewPomp', {
                                 deviceid: device.deviceid,
@@ -239,8 +241,7 @@ const HomeScreen = ({ navigation }) => {
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={getDeviceList} />
                 }
-            >
-                <Button onPress={ConnectWifiTest}>Test Wifi Connect</Button>
+            > 
                 <ErrorMessage message={error} />
 
                 {
@@ -254,9 +255,7 @@ const HomeScreen = ({ navigation }) => {
                         }
                     })
                 }
-
-                {isWifi && hasInternet ? <LottieView source={require('../assets/Online_Offline.json')}
-                    autoPlay loop style={{ width: 150, height: 150, alignSelf: 'center' }}></LottieView> :  null}
+ 
 
             </ScrollView>
         </LinearGradient >

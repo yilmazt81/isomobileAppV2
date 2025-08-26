@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Image, StyleSheet, TouchableOpacity, Dimensions, Alert, ScrollView } from 'react-native';
+import { View, Image, StyleSheet, TouchableOpacity, Dimensions, Alert, ScrollView, PermissionsAndroid, Platfor, Platform } from 'react-native';
 
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 
@@ -14,7 +14,7 @@ import LinearGradient from 'react-native-linear-gradient';
 
 import styles from './PlantBigViewPompStyle';
 import firestore from '@react-native-firebase/firestore';
-import storage from '@react-native-firebase/storage';
+import storage, { updateMetadata } from '@react-native-firebase/storage';
 import ErrorMessage from '../../../companent/ErrorMessage';
 import TaskEditor from '../../../companent/TaskEditor';
 import DurationDlg from '../../../companent/DurationDlg';
@@ -38,17 +38,18 @@ import {
     Switch,
     Text,
     useTheme,
+    Icon
 } from "react-native-paper";
 
 import mqttService from '../../../lib/mqttService';
+import Geolocation from "react-native-geolocation-service";
 
-
-const PlantBigViewPomp = ({ navigation }) => {
+const PlantBigViewPomp = () => {
     const route = useRoute();
     const [response, setResponse] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [editorOpen, setEditorOpen] = useState(false);
-
+    const [location, setLocation] = useState(null);
     const { t, i18n } = useTranslation();
     const { deviceid = '', devicename = '', userid, firebasedocumentid } = route.params || {};
     const [message, setMessage] = useState(t("Connecting"));
@@ -68,7 +69,8 @@ const PlantBigViewPomp = ({ navigation }) => {
     const [pump1On, setPump1On] = useState(false);
     const [pump2On, setPump2On] = useState(false);
     const [selectedPomp, setSelectedPomp] = useState(1);
-
+    const [enablegeoLocation, setEnablegeoLocation] = useState(false);
+    const [initialPompTask, setinitialPompTask] = useState(null);
 
 
 
@@ -152,12 +154,40 @@ const PlantBigViewPomp = ({ navigation }) => {
             setConnected(false);
         });
 
+
+
         return () => {
-            clientRef.current.end();
+            try {
+                // mqtt.js için doğru kapanış metodu end()'dir; destroy() yok.
+                clientRef.current?.end(true); // force=true isteğe bağlı
+            } catch (e) {
+                console.log('MQTT close error:', e);
+            }
         };
 
     }
 
+
+    const getLocation = async () => {
+        setLocation("Konum Alınıyor...");
+        setErrorMessage(null);
+        const hasPermission = await requestPermission();
+        if (!hasPermission) return;
+
+        Geolocation.getCurrentPosition(
+            async (position) => {
+
+                setLocation(position.coords.latitude + "," + position.coords.longitude);
+                await UpdatePompStatus({ enableLocation: true, devicelatitude: position.coords.latitude.toString(), devicelongitude: position.coords.longitude.toString() });
+
+            },
+            (error) => {
+                console.log(error.code, error.message);
+                setErrorMessage(error.message);
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        );
+    };
     const StartPomp = async (pompnumber, time) => {
         const mqttClient = mqttService.getClient();
         setErrorMessage(null);
@@ -232,31 +262,93 @@ const PlantBigViewPomp = ({ navigation }) => {
         Alert.alert("Resim Yüklendi", downloadUrl, [{ text: "Tamam" }]);
         console.log("Resim URL:", downloadUrl);
         setImageUri(downloadUrl);
-        debugger;
         await UpdatePompStatus({ picture: downloadUrl });
     };
 
-    useEffect(async () => {
-        await getDevice();
-        connectMqtt();
 
+    const requestPermission = async () => {
+        if (Platform.OS === "android") {
+            const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+                PermissionsAndroid.CAMERA,
+                {
+                    title: t("CameraPermisionTitle"),
+                    message: t("CameraPermisionMessage"),
+                    buttonNeutral: t("AskMeLater"),
+                    buttonNegative: t("Cancel"),
+                    buttonPositive: t("OK")
+                }
+            );
+            return granted === PermissionsAndroid.RESULTS.GRANTED;
+        }
+        return true; // iOS için
+    };
+
+    useEffect(() => {
+        let cleanup;
+        (async () => {
+            await getDevice(0);
+            cleanup = connectMqtt();   // connectMqtt cleanup döndürüyor
+            await requestPermission();
+        })();
+        return () => {
+            if (typeof cleanup === 'function') cleanup();
+        };
     }, []);
 
-
-    const getDevice = async () => {
+    const getDevice = async (pmpNumber) => {
         try {
             const docRef = firestore().collection('Device').doc(firebasedocumentid); // koleksiyon ve doküman id
             const docSnap = await docRef.get();
 
-            if (docSnap.exists) {
-                console.log("Kullanıcı verisi:", docSnap.data());
-                var data = docSnap.data();
+            if (docSnap._exists) {
+                //console.log("Kullanıcı verisi:", docSnap.data());
+
+                var data = docSnap._data;
+
                 setisPomp1Open(data?.pomp1);
                 setisPomp2Open(data?.pomp2);
+                setEnablegeoLocation(data?.enableLocation);
+
+                if (pmpNumber === 1) {
+                    var days = data?.Pomp1WorkingDays
+                        ? String(data.Pomp1WorkingDays)
+                            .split(",")
+                            .map((x) => x.trim())           // boşlukları sil
+                            .filter((x) => x !== "")        // boşları at
+                            .map((x) => parseInt(x, 10))    // int’e çevir
+                            .filter((n) => !isNaN(n))       // NaN olanları at
+                        : []
+                    setinitialPompTask({
+                        pompnumber: 1,
+                        enabled: data?.pomp1,
+                        nextRun: (data?.Pomp1WorkingnextRun == null ? new Date() : new Date(data?.Pomp1WorkingnextRun)),
+                        repeat: { type: data?.Pomp1WorkingPeriod, days: days },
+                        durationValue:  data.Pomp1WorkingDuration ,
+                    });  
+                } else if (pmpNumber === 2) {
+                    var days = data?.Pomp2WorkingDays
+                        ? String(data.Pomp2WorkingDays)
+                            .split(",")
+                            .map((x) => x.trim())           // boşlukları sil
+                            .filter((x) => x !== "")        // boşları at
+                            .map((x) => parseInt(x, 10))    // int’e çevir
+                            .filter((n) => !isNaN(n))       // NaN olanları at
+                        : []
+                    setinitialPompTask({
+                        pompnumber: 2,
+                        enabled: data?.pomp2,
+                        nextRun: (data?.Pomp2WorkingnextRun == null ? new Date() : new Date(data?.Pomp2WorkingnextRun)),
+                        repeat: { type: data?.Pomp2WorkingPeriod, days: days },
+                        durationValue:  data?.Pomp2WorkingDuration ,
+                    });
+                }
             } else {
                 console.log("Böyle bir doküman yok!");
+                setErrorMessage("Böyle bir doküman yok!");
             }
         } catch (error) {
+            debugger;
             console.error("Doküman okunamadı: ", error);
             setErrorMessage(error.message);
         }
@@ -272,21 +364,20 @@ const PlantBigViewPomp = ({ navigation }) => {
         await StartPomp(1, 5);
     };
 
-    const openTaskCreate = (pomp) => {
+    const openTaskCreate = async (pomp) => {
 
+        await getDevice(pomp);
         setSelectedPomp(pomp);
         setEditorOpen(true);
     };
 
     const handlePump2 = async () => {
-        //if (pump1On) return stopPump(1);
 
         await StartPomp(2, 5);
     };
 
 
     const handlePump = async (pomp, time) => {
-        //if (pump1On) return stopPump(1);
 
         await StartPomp(pomp, time);
 
@@ -298,7 +389,6 @@ const PlantBigViewPomp = ({ navigation }) => {
 
     const UpdatePompStatus = async (data) => {
         try {
-
             await firestore()
                 .collection('Device')
                 .doc(firebasedocumentid) // doküman ID
@@ -306,6 +396,7 @@ const PlantBigViewPomp = ({ navigation }) => {
             console.log('Güncelleme başarılı!');
         } catch (error) {
             console.error('Update hatası: ', error);
+            setErrorMessage(error.message);
         }
     };
 
@@ -318,7 +409,6 @@ const PlantBigViewPomp = ({ navigation }) => {
             setisPomp2Open(status);
             await UpdatePompStatus({ pomp2: status });
         }
-
     }
 
     const updatePompTask = async (task) => {
@@ -339,7 +429,7 @@ const PlantBigViewPomp = ({ navigation }) => {
                 Pomp1WorkingPeriod: task.repeat.type,
                 Pomp1WorkingDays: workingDays,
                 Pomp1WorkingDuration: task.durationValue,
-
+                Pomp1WorkingnextRun: task.nextRun.toString()
             };
             UpdatePompStatus(updatedata);
         } else {
@@ -349,6 +439,7 @@ const PlantBigViewPomp = ({ navigation }) => {
                 Pomp2WorkingPeriod: task.repeat.type,
                 Pomp2WorkingDays: workingDays,
                 Pomp2WorkingDuration: task.durationValue,
+                Pomp2WorkingnextRun: task.nextRun.toString()
             };
 
             UpdatePompStatus(updatedata);
@@ -394,7 +485,6 @@ const PlantBigViewPomp = ({ navigation }) => {
     }
 
     const sendCommandToDevice = async (command) => {
-        debugger;
         const mqttClient = mqttService.getClient();
         setErrorMessage(null);
 
@@ -413,6 +503,15 @@ const PlantBigViewPomp = ({ navigation }) => {
                 setErrorMessage(`Publish Hatası: ${error.message}`);
             }
         });
+    }
+
+    const toggleLocationSwitch = async () => {
+        setEnablegeoLocation(enablegeoLocation => !enablegeoLocation);
+        if (enablegeoLocation) {
+            await getLocation();
+        } else {
+            await UpdatePompStatus({ enableLocation: false, devicelatitude: "", devicelongitude: "" });
+        }
     }
     return (
 
@@ -439,6 +538,21 @@ const PlantBigViewPomp = ({ navigation }) => {
 
                     <Card>
                         <View style={styles.pompcontainer}>
+                            <View>
+
+                                <View style={styles.leftContent}>
+                                    <Icon name="map-marker" size={28} color="#007AFF" style={{ marginRight: 10 }} />
+
+                                    <Text style={styles.labellocation}>{t("LocationDescription")}</Text>
+                                </View>
+                                <Switch
+                                    trackColor={{ false: "#767577", true: "#81b0ff" }}
+                                    thumbColor={enablegeoLocation ? "#007AFF" : "#f4f3f4"}
+                                    ios_backgroundColor="#3e3e3e"
+                                    onValueChange={() => toggleLocationSwitch()}
+                                    value={enablegeoLocation}
+                                />
+                            </View>
                             <View style={styles.grid}>
                                 <View style={styles.cell}>
                                     <IconButton
@@ -490,6 +604,7 @@ const PlantBigViewPomp = ({ navigation }) => {
                                 </View>
                             </View>
                         </View>
+
                     </Card>
 
                     {
@@ -502,7 +617,7 @@ const PlantBigViewPomp = ({ navigation }) => {
                     <DurationDlg
 
                         duration={durationDlg}
-                        closeDuration={() => setDurationDlg({ ...duration, open: false, value: defaultDuration })}
+                        closeDuration={() => setDurationDlg({ ...durationDlg, open: false, value: String(defaultDuration) })}
 
                         defaultDuration={defaultDuration}
                         confirmDuration={(e, t) => handlePump(e, t)}
@@ -514,8 +629,9 @@ const PlantBigViewPomp = ({ navigation }) => {
                         defaultDuration={defaultDuration}
                         onDismiss={() => setEditorOpen(false)}
                         pomp={selectedPomp}
+
                         onSave={(e) => updatePompTask(e)}
-                        initial={editing}
+                        initial={initialPompTask}
                         t={t}
                     />
                 </ScrollView>

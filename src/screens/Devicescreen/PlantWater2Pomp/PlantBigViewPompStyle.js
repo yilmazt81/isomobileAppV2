@@ -1,4 +1,4 @@
-import { StyleSheet ,Dimensions} from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -100,7 +100,10 @@ export default StyleSheet.create({
         alignItems: 'flex-start',
         gap: 2,
     },
-
+    leftContent: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
     middleColumn: {
         alignItems: 'center',
         marginHorizontal: 10,
@@ -108,6 +111,11 @@ export default StyleSheet.create({
     rightColumn: {
         alignItems: 'center',
         justifyContent: 'center',
+    },
+
+    labellocation: {
+        fontSize: 16,
+        fontWeight: "500",
     },
 });
 
