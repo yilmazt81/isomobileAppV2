@@ -470,8 +470,12 @@ const PlantBigViewPomp = () => {
                     P2SH: data?.Pomp2WorkingHour,
                     P2SM: data?.Pomp2WorkingMinute,
                     PW2WD: data?.Pomp2WorkingDays,
-                    P2WT: data?.Pomp1WorkingDuration,
+                    P2WT: data?.Pomp2WorkingDuration,
                     P1WT: data?.Pomp1WorkingDuration,
+                    UseGeo:data?.enableLocation,
+                    DLat:data?.devicelatitude,
+                    DLong:data?.devicelongitude,
+                    enLoca:data?.enableLocation,
                 };
                 sendCommandToDevice(command);
             } else {
@@ -507,7 +511,7 @@ const PlantBigViewPomp = () => {
 
     const toggleLocationSwitch = async () => {
         setEnablegeoLocation(enablegeoLocation => !enablegeoLocation);
-        if (enablegeoLocation) {
+        if (!enablegeoLocation) {
             await getLocation();
         } else {
             await UpdatePompStatus({ enableLocation: false, devicelatitude: "", devicelongitude: "" });
