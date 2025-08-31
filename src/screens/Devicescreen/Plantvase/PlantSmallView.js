@@ -25,7 +25,7 @@ const PlantSmallView = ({ plantName, deviceid,userid }) => {
     const [connected, setConnected] = useState(false);
 
     //const [soilMoistureLevel, setsoilMoistureLevel] = useState('normal'); // 'nemli', 'normal', 'kuru'
-
+/*
     const connectMqtt = () => {
 
         if (Config.mqttwebsocket === undefined) {
@@ -76,9 +76,9 @@ const PlantSmallView = ({ plantName, deviceid,userid }) => {
         };
 
     }
-
+    */
     useEffect(() => {
-        connectMqtt();
+       // connectMqtt();
 
 
     }, []);

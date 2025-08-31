@@ -19,14 +19,11 @@ const PlantSmallViewPomp = ({ plantName, deviceid, userid,pomp1status,pomp2statu
 
     const [client, setClient] = useState(null);
 
-    const [temperature, setTemperature] = useState(0);
-    const [airHumidity, setAirHumidity] = useState(0);
-    const [soil_moisture, setSoilMoisture] = useState(0);
     const [icon, seticon] = useState(null);
     const [connected, setConnected] = useState(false);
 
     //const [soilMoistureLevel, setsoilMoistureLevel] = useState('normal'); // 'nemli', 'normal', 'kuru'
-
+/*
     const connectMqtt = () => {
 
         if (Config.mqttwebsocket === undefined) {
@@ -44,7 +41,7 @@ const PlantSmallViewPomp = ({ plantName, deviceid, userid,pomp1status,pomp2statu
         });
 
         client.on('connect', () => {
-            console.log('WSS MQTT bağlandı');
+           // console.log('WSS MQTT bağlandı');
             setMessage(t("Connected"));
             setConnected(true);
             setClient(client);
@@ -54,14 +51,14 @@ const PlantSmallViewPomp = ({ plantName, deviceid, userid,pomp1status,pomp2statu
         client.on('message', (topic, msg) => {
 
             if (topic === topic) {
-               /* var jsonData = JSON.parse(msg.toString());
+                var jsonData = JSON.parse(msg.toString());
                 setSoilMoisture(jsonData.soil_moisture);
                 setTemperature(jsonData.temperature);
                 setAirHumidity(jsonData.humidity);
 
                 var icon_ = getMoistureIcon(getSoilMoistureLevel(jsonData.soil_moisture));
                 seticon(icon_);
-                */
+               
             }
         });
 
@@ -74,10 +71,10 @@ const PlantSmallViewPomp = ({ plantName, deviceid, userid,pomp1status,pomp2statu
         return () => {
             client.end();
         };
-    }
+    }*/
 
     useEffect(() => {
-        connectMqtt();
+        //connectMqtt();
 
     }, []);
 
@@ -90,7 +87,7 @@ const PlantSmallViewPomp = ({ plantName, deviceid, userid,pomp1status,pomp2statu
                 </View>
                 <View style={styles.middleColumn}>
                     <MaterialDesignIcons name='engine-outline' size={50} color={pomp1status?'#1de42aff':'#ed0404ff'} />
-
+                  
                 </View>
 
                 {/* Orta - sıcaklık */}

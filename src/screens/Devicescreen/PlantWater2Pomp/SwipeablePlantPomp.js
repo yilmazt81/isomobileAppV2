@@ -84,6 +84,8 @@ const SwipeablePlantPomp = ({ device, onDelete, onPress, t, userid,firebasedocum
     >
       <PlantSmallViewPomp
         key={device.id}
+         pomp1status={device.pomp1}
+         pomp2status={device.pomp2}
         plantName={device.devicename}
         deviceid={device.deviceid}
         deviceType={device.devicetype}

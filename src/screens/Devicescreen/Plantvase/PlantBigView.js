@@ -147,7 +147,7 @@ const PlantBigView = () => {
             time: pompRunTime
         };
 
-        client.publish(topic, JSON.stringify(command), { qos: 1 }, (error) => {
+        client.publish(topic, JSON.stringify(command), { qos: 1 ,retain: false }, (error) => {
             if (error) {
                 console.error('Publish Hatası:', error);
                 setErrorMessage('Publish Hatası:', error);

@@ -1,22 +1,27 @@
-// mqttService.js
+// mqttService.js - GELİŞMİŞ VERSİYON
+
 import mqtt from 'mqtt';
 import Config from 'react-native-config';
 
 let client = null;
 
 const connect = (clientId) => {
-    if (client) return client; // daha önce bağlandıysa tekrar bağlanma
+    if (client && client.connected) return client;
+
+    if (client) {
+        client.end(true);
+        client = null;
+    }
 
     const url = Config.mqttwebsocket;
-    const port = Config.mqttWebSocketport;
 
     client = mqtt.connect(url, {
-        port,
         clientId,
         username: Config.mqtt_username,
         password: Config.mqtt_password,
-        keepalive: 60,
+        keepalive: 15,
         reconnectPeriod: 3000,
+        clean: false,
         rejectUnauthorized: false,
     });
 
@@ -30,6 +35,10 @@ const connect = (clientId) => {
 
     client.on('reconnect', () => {
         console.warn('[MQTT] Yeniden bağlanıyor...');
+    });
+
+    client.on('offline', () => {
+        console.warn('[MQTT] Offline oldu.');
     });
 
     client.on('close', () => {

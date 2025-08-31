@@ -187,7 +187,7 @@ const HomeScreen = ({ navigation }) => {
         }
     }
     const CreateViewPlantWater2Pomp = (device) => {
-
+            
         return (
             <TouchableOpacity
                 key={device.id}
@@ -200,9 +200,7 @@ const HomeScreen = ({ navigation }) => {
                         device={device}
                         t={t}
                         onDelete={handleDelete}
-                        userid={userid}
-                        pomp1status ={device?.pomp1}
-                        pomp2status ={device?.pomp2}
+                        userid={userid} 
                         onPress={() =>
                             navigation.navigate('PlantBigViewPomp', {
                                 deviceid: device.deviceid,

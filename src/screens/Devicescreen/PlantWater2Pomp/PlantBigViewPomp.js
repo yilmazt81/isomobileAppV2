@@ -113,45 +113,67 @@ const PlantBigViewPomp = () => {
 
 
     const connectMqtt = () => {
-        var topic = deviceid + '/sensorData';
+        // var topic = deviceid + '/sensorData';
+        var statusTopic = deviceid + '/status';
+
         setErrorMessage(null);
         console.log(Config);
         if (Config.mqttwebsocket === undefined) {
             setErrorMessage("config Cannot read");
             return;
         }
-        console.log(Config.mqttwebsocket);
-        console.log(Config.mqttWebSocketport);
-        clientRef.current = mqttService.connect(userid);
+        clientRef.current = mqttService.connect(userid + "_PompBigView");
 
         clientRef.current.on('connect', () => {
 
             console.log('WSS MQTT bağlandı');
             setMessage(t("Connected"));
+
             setConnected(true);
             // setClient(client);
 
-            clientRef.current.subscribe(topic);
+            // clientRef.current.subscribe(topic);
+            clientRef.current.subscribe(statusTopic);
         });
-        /*
-         client.on('message', (topic, msg) => {
-             setMessage(null);
-                if (topic === topic) {
-                    var jsonData = JSON.parse(msg.toString());
-                    setSoilMoisture(jsonData.soil_moisture);
-                    setTemperature(jsonData.temperature);
-                    setAirHumidity(jsonData.humidity);
-    
-                    var icon_ = getMoistureIcon(getSoilMoistureLevel(jsonData.soil_moisture));
-                    console.log(icon_);
-                    seticon(icon_);
-                } 
-         });
-         */
+
+        clientRef.current.on('message', (topic, msg) => {
+
+
+            var message = msg.toString();
+
+            setMessage(null);
+
+
+            if (topic === statusTopic) {
+
+                const arr = message.split('|');
+
+                if (arr.length === 3) {
+                 
+                    if (arr[0] === "pompstatus") {
+                        if (arr[1] === "1") {
+                            setPump1On(arr[2] === "1");
+                        }
+
+                        if (arr[1] === "2") {
+                            setPump2On(arr[2] === "1");
+                        }
+                    }
+                }
+
+            }
+        });
+
         clientRef.current.on('error', err => {
             console.log('MQTT WSS HATA:', err);
             setErrorMessage(t("ConnectionError"), err.message);
             setConnected(false);
+            debugger;
+        }); clientRef.current.on('close', () => {
+            console.log("MQTT bağlantısı kapandı");
+            debugger;
+            setConnected(false);
+            setTimeout(() => connectMqtt(), 2000); // 2 saniye sonra yeniden bağlan
         });
 
 
@@ -189,12 +211,13 @@ const PlantBigViewPomp = () => {
         );
     };
     const StartPomp = async (pompnumber, time) => {
-        const mqttClient = mqttService.getClient();
+        const mqttClient = clientRef.current || mqttService.getClient();
         setErrorMessage(null);
 
         if (!mqttClient) {
             console.warn('MQTT client henüz bağlanmadı.');
             setErrorMessage("MQTT client henüz bağlanmadı.")
+            connectMqtt();
             return;
         }
         var topic = deviceid + '/command';
@@ -206,7 +229,7 @@ const PlantBigViewPomp = () => {
             time: time,
             pomp: pompnumber
         };
-        mqttClient.publish(topic, JSON.stringify(command), { qos: 1 }, (error) => {
+        mqttClient.publish(topic, JSON.stringify(command), { qos: 1, retain: false }, (error) => {
 
             if (error) {
                 console.error('Publish Hatası:', error);
@@ -286,12 +309,22 @@ const PlantBigViewPomp = () => {
 
     useEffect(() => {
         let cleanup;
+        const pingInterval = setInterval(() => {
+            const c = mqttService.getClient();
+            if (c && c.connected) {
+                c.publish(`${deviceid}/ping`, 'ping', { qos: 0,retain: false });
+            }
+        }, 10000); // 10 saniyede bir ping
+
         (async () => {
             await getDevice(0);
             cleanup = connectMqtt();   // connectMqtt cleanup döndürüyor
             await requestPermission();
+
         })();
         return () => {
+
+            clearInterval(pingInterval);
             if (typeof cleanup === 'function') cleanup();
         };
     }, []);
@@ -324,8 +357,8 @@ const PlantBigViewPomp = () => {
                         enabled: data?.pomp1,
                         nextRun: (data?.Pomp1WorkingnextRun == null ? new Date() : new Date(data?.Pomp1WorkingnextRun)),
                         repeat: { type: data?.Pomp1WorkingPeriod, days: days },
-                        durationValue:  data.Pomp1WorkingDuration ,
-                    });  
+                        durationValue: data.Pomp1WorkingDuration,
+                    });
                 } else if (pmpNumber === 2) {
                     var days = data?.Pomp2WorkingDays
                         ? String(data.Pomp2WorkingDays)
@@ -340,7 +373,7 @@ const PlantBigViewPomp = () => {
                         enabled: data?.pomp2,
                         nextRun: (data?.Pomp2WorkingnextRun == null ? new Date() : new Date(data?.Pomp2WorkingnextRun)),
                         repeat: { type: data?.Pomp2WorkingPeriod, days: days },
-                        durationValue:  data?.Pomp2WorkingDuration ,
+                        durationValue: data?.Pomp2WorkingDuration,
                     });
                 }
             } else {
@@ -472,10 +505,10 @@ const PlantBigViewPomp = () => {
                     PW2WD: data?.Pomp2WorkingDays,
                     P2WT: data?.Pomp2WorkingDuration,
                     P1WT: data?.Pomp1WorkingDuration,
-                    UseGeo:data?.enableLocation,
-                    DLat:data?.devicelatitude,
-                    DLong:data?.devicelongitude,
-                    enLoca:data?.enableLocation,
+                    UseGeo: data?.enableLocation,
+                    DLat: data?.devicelatitude,
+                    DLong: data?.devicelongitude,
+                    enLoca: data?.enableLocation,
                 };
                 sendCommandToDevice(command);
             } else {
@@ -499,7 +532,7 @@ const PlantBigViewPomp = () => {
         }
         var topic = deviceid + '/command';
 
-        mqttClient.publish(topic, JSON.stringify(command), { qos: 1 }, (error) => {
+        mqttClient.publish(topic, JSON.stringify(command), { qos: 1, retain: false }, (error) => {
 
             if (error) {
                 console.error('Publish Hatası:', error);
@@ -534,8 +567,6 @@ const PlantBigViewPomp = () => {
 
                     <View style={styles.infoSection}>
                         <Text style={styles.name}>{devicename}</Text>
-                        <Text style={styles.name}>Aloe Vera</Text>
-                        <Text style={styles.description}>Güneşli alanları seven, suyu depolayan bir bitki türüdür.</Text>
                     </View>
 
                     <ErrorMessage message={errorMessage}></ErrorMessage>
