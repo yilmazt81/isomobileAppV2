@@ -17,7 +17,7 @@ import SwipeablePlantV1 from '../Devicescreen/Plantvase/SwipeablePlantV1';
 import SwipeableItem from '../../companent/SwipeableItem';
 import { Button } from 'react-native-paper';
 import WifiManager from "react-native-wifi-reborn";
-
+//import crashlytics from '@react-native-firebase/crashlytics';
 
 
 const HomeScreen = ({ navigation }) => {
@@ -65,6 +65,7 @@ const HomeScreen = ({ navigation }) => {
 
         } catch (error) {
             setError(error.message);
+           // crashlytics().recordError(error);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -93,6 +94,7 @@ const HomeScreen = ({ navigation }) => {
 
         } catch (error) {
             setError(error.message);
+           // crashlytics().recordError(error);
             console.error('Firestore veri çekme hatası:', error);
         } finally {
             setLoading(false);
@@ -103,11 +105,15 @@ const HomeScreen = ({ navigation }) => {
 
     useEffect(() => {
         // synchronizeData();
-        const user = auth().currentUser;
-        setUserid(user.uid);
+        try {
+            const user = auth().currentUser;
+            setUserid(user.uid);
 
-        addDeviceToCloud();
-        getDeviceList();
+            addDeviceToCloud();
+            getDeviceList();
+        } catch (error) {
+           // crashlytics().recordError(error);
+        }
     }, []);
     const CreateViewVaseV1 = (device) => {
 
@@ -139,18 +145,19 @@ const HomeScreen = ({ navigation }) => {
     }
 
     const handleDelete = async (device) => {
-        debugger;
 
 
-        await firestore()
-            .collection('Device')
-            .doc(device.id)
-            .delete();
-        getDeviceList();
-        //Alert.alert('Test', 'Bu ekran yüklendi, alert çalışıyor mu?', device.id);
-        /*   await Database.DeleteDevice(device.id);
-           setDeviceList((prev) => prev.filter((d) => d.id !== device.id));
-           */
+        try {
+
+            await firestore()
+                .collection('Device')
+                .doc(device.id)
+                .delete();
+            getDeviceList();
+        } catch (error) {
+            //crashlytics().recordError(error);
+        }
+
     };
 
     const ConnectWifiTest = async () => {
@@ -184,10 +191,11 @@ const HomeScreen = ({ navigation }) => {
         } catch (error) {
             console.log(error);
             setError(error.message);
+           // crashlytics().recordError(error);
         }
     }
     const CreateViewPlantWater2Pomp = (device) => {
-            
+
         return (
             <TouchableOpacity
                 key={device.id}
@@ -200,7 +208,7 @@ const HomeScreen = ({ navigation }) => {
                         device={device}
                         t={t}
                         onDelete={handleDelete}
-                        userid={userid} 
+                        userid={userid}
                         onPress={() =>
                             navigation.navigate('PlantBigViewPomp', {
                                 deviceid: device.deviceid,
@@ -239,7 +247,7 @@ const HomeScreen = ({ navigation }) => {
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={getDeviceList} />
                 }
-            > 
+            >
                 <ErrorMessage message={error} />
 
                 {
@@ -253,7 +261,7 @@ const HomeScreen = ({ navigation }) => {
                         }
                     })
                 }
- 
+
 
             </ScrollView>
         </LinearGradient >

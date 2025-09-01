@@ -92,6 +92,10 @@
   "Duration": "Duration",
   "Seconds": "Second",
   "Dashboard": "control panel",
-  "MultipompSettings": "Multipomp Settings",  
-  "LocationDescription":"you can set up automatic watering according to the weather by entering the location."
+  "MultipompSettings": "Multipomp Settings",
+  "LocationDescription": "you can set up automatic watering according to the weather by entering the location.",
+  "ManuelSetting": "Manual Settings",
+  "BarcodeScanner": "Barcode Scanner",
+  "WifiSettings_Header": " Wi-Fi Settings",
+  "NameAndSurname": "Name and Surname"
 }

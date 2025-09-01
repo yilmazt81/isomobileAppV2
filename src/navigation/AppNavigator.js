@@ -1,10 +1,9 @@
 import React, { useState, createContext, useContext, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createDrawerNavigator } from '@react-navigation/drawer';
+//import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
-import { FontAwesome6 } from "@react-native-vector-icons/fontawesome6";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 
@@ -23,10 +22,12 @@ import PlantBigView from '../screens/Devicescreen/Plantvase/PlantBigView'; // ye
 import ManuelSetting from '../screens/ManuelSetting/ManuelSettingScreen'; // yeni ekran
 import ForgotPasswordScreen from '../screens/ForgotPassword/forgotPasswordScreen';
 import PlantBigViewPomp from '../screens/Devicescreen/PlantWater2Pomp/PlantBigViewPomp';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next'; 
+
+
 const AuthStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
-const Drawer = createDrawerNavigator();
+//const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
 
 export const AuthContext = React.createContext();
@@ -60,7 +61,7 @@ const DashboardStack = () => {
         component={TabNavigator}
         options={({ navigation }) => ({
           title: t("Dashboard"),
-          headerLeft: () => (
+         /* headerLeft: () => (
             <MaterialDesignIcons
               name="menu"
               size={25}
@@ -68,7 +69,7 @@ const DashboardStack = () => {
               style={{ marginLeft: 20 }}
               onPress={() => navigation.toggleDrawer()}
             />
-          ),
+          ),*/
           headerRight: () => (
             <>
               <MaterialDesignIcons
@@ -87,12 +88,16 @@ const DashboardStack = () => {
           ),
         })}
       />
-      <Stack.Screen name="BarcodeScanner" component={BarcodeScannerScreen} />
-      <Stack.Screen name="WifiSettings" component={WifiSettingsScreen} />
+      <Stack.Screen name="BarcodeScanner" component={BarcodeScannerScreen}   options={() => ({ title: t("BarcodeScanner") })}  />
+      <Stack.Screen name="WifiSettings" component={WifiSettingsScreen}   options={() => ({ title: t("WifiSettingsWifiSettings_Header") })} />
       <Stack.Screen name="WifiScanner" component={WifiScannerScreen} options={{ presentation: 'modal' }} />
-      <Stack.Screen name="ManuelSetting" component={ManuelSetting} />
+      <Stack.Screen name="ManuelSetting" component={ManuelSetting} 
+      options={() => ({ title: t("ManuelSetting") })} 
+      />
       <Stack.Screen name="PlantBigView" component={PlantBigView} title="Bitki Özellikleri" />
-      <Stack.Screen name='PlantBigViewPomp' options={()=>({title:t("MultipompSettings")})} component={PlantBigViewPomp}></Stack.Screen>
+      <Stack.Screen name='PlantBigViewPomp' options={() => ({ title: t("MultipompSettings") })} 
+      
+      component={PlantBigViewPomp}></Stack.Screen>
       <Stack.Screen name='Home' component={HomeScreen}></Stack.Screen>
     </Stack.Navigator>
   );
@@ -120,6 +125,7 @@ const TabNavigator = () => (
     />
   </Tab.Navigator>
 );
+/*
 const DrawerNavigator = () => (
   <Drawer.Navigator screenOptions={{ headerShown: false }}>
     <Drawer.Screen
@@ -142,6 +148,7 @@ const DrawerNavigator = () => (
     />
   </Drawer.Navigator>
 );
+*/
 
 export default function AppNavigator() {
 
@@ -150,26 +157,28 @@ export default function AppNavigator() {
 
   useEffect(() => {
 
+    try {
+      const unsubscribe = auth().onAuthStateChanged(user => {
+        if (user) {
+          setUserToken(user.uid);
+        } else {
+          setUserToken(null);
+        }
+      });
 
-    console.log("LoginScreen:", LoginScreen); // undefined mı?
-    console.log("DrawerNavigator:", DrawerNavigator);
-
-    const unsubscribe = auth().onAuthStateChanged(user => {
-      if (user) {
-        setUserToken(user.uid);
-      } else {
-        setUserToken(null);
-      }
-    });
-
-    return unsubscribe;
+      return unsubscribe;
+    } catch (error) {
+     // crashlytics().recordError(error);
+      console.log(error);
+    }
   }, []);
 
   return (
     <AuthContext.Provider value={{ setUserToken }}>
+         <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
-        {userToken == null ? <AuthStackScreen /> : <DrawerNavigator />}
-      </NavigationContainer>
+        {userToken == null ? <AuthStackScreen /> : <DashboardStack />}
+      </NavigationContainer></GestureHandlerRootView>
     </AuthContext.Provider>
   );
 }

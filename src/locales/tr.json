@@ -88,6 +88,10 @@
   "Seconds":"Saniye",
   "Dashboard":"Kontrol Paneli",
   "MultipompSettings":"Çoklu Pompa Ayarları",
-  "LocationDescription":"Konum Girerek Hava Durumuna göre Otomatik Sulama Ayarı Yapabilirsiniz."
+  "LocationDescription":"Konum Girerek Hava Durumuna göre Otomatik Sulama Ayarı Yapabilirsiniz.",
+  "ManuelSetting":"Manuel Ayarlar",
+  "BarcodeScanner": "Barkod Tarayıcı",
+  "WifiSettings_Header": " Wi-Fi Ayarları",
+  "NameAndSurname": "Ad ve Soyad"
 
 }

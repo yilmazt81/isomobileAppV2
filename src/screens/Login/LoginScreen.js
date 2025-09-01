@@ -20,6 +20,7 @@ import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ErrorMessage from '../../companent/ErrorMessage';
 import auth from '@react-native-firebase/auth';
+//import crashlytics from '@react-native-firebase/crashlytics';
 
 const availableLanguages = [
   { label: 'Türkçe', value: 'tr', flag: '🇹🇷' },
@@ -46,16 +47,18 @@ const LoginScreen = ({ navigation }) => {
       .signInWithEmailAndPassword(email, password)
       .then(userCredential => {
         const uid = userCredential.user.uid;
+     
         setUserToken(uid); // AppNavigator'da kullanıcıyı login etmiş sayıyoruz
       })
       .catch(error => {
         setLoginError(t(error.code));// örnek: Şifre hatalıysa gösterilir
+         // crashlytics().recordError(error);
       }).finally(()=>{
           setLoginStart(false);
       })
   };
   const changeLanguage = async (lng) => {
-    debugger;
+  
     //var newLang = (lng === 'tr' ? 'en' : 'tr');
     setLang(lng);
     i18n.changeLanguage(lng);
