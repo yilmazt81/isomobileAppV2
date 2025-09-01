@@ -74,6 +74,7 @@ const ManuelSetting = ({ navigation, route }) => {
     const [deviceType] = React.useState([
         { label: t('SmartDevice1'), value: 'SmartDevice1', wifiName: "smartVasewf", wifiPassword: "12345678" },
         { label: t('SmartVase2Multi'), value: 'SmartVase2Multi', wifiName: "smartVase2", wifiPassword: "78945621" },
+        { label: t('SmartVase1Pomp'), value: 'SmartPomp1', wifiName: "smartVase3", wifiPassword: "85236974" },
     ]);
     const [dropdown, setDropdown] = useState(null);
     const [wifiName, setWifiName] = useState('');
