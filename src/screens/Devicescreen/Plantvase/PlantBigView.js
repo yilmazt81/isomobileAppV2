@@ -83,7 +83,8 @@ const PlantBigView = () => {
 
 
     const connectMqtt = () => {
-        var topic = deviceid + '/sensorData';
+        var topicsensor = deviceid + '/sensorData';
+        var statusTopic = deviceid + '/status';
         setErrorMessage(null);
         if (Config.mqttwebsocket === undefined) {
             setErrorMessage("config Cannot read");
@@ -102,20 +103,38 @@ const PlantBigView = () => {
             setMessage(t("Connected"));
             setConnected(true);
             setClient(client);
-            client.subscribe(topic);
+            client.subscribe(topicsensor);
+            client.subscribe(statusTopic);
         });
 
         client.on('message', (topic, msg) => {
             setMessage(null);
-            if (topic === topic) {
+            if (topic === topicsensor) {
                 var jsonData = JSON.parse(msg.toString());
                 setSoilMoisture(jsonData.soil_moisture);
-                //  setTemperature(jsonData.temperature);
-                // setAirHumidity(jsonData.humidity);
-
                 var icon_ = getMoistureIcon(getSoilMoistureLevel(jsonData.soil_moisture));
                 console.log(icon_);
                 seticon(icon_);
+            }
+
+            var message = msg.toString();
+
+            setMessage(null);
+
+        
+            if (topic === statusTopic) {
+           
+                const arr = message.split('|');
+                 debugger;
+                if (arr.length === 3) {
+
+                    if (arr[0] === "pompstatus") {
+
+                        pompuRunning(arr[2] === "1"); 
+
+                    }
+                }
+
             }
         });
 
@@ -139,7 +158,7 @@ const PlantBigView = () => {
             console.warn('MQTT client henüz bağlanmadı.');
             return;
         }
-        var topic = deviceid + '/command';
+        var topiccommand = deviceid + '/command';
 
         const command = {
             command: 'water',
@@ -147,7 +166,7 @@ const PlantBigView = () => {
             time: pompRunTime
         };
 
-        client.publish(topic, JSON.stringify(command), { qos: 1 ,retain: false }, (error) => {
+        client.publish(topiccommand, JSON.stringify(command), { qos: 1, retain: false }, (error) => {
             if (error) {
                 console.error('Publish Hatası:', error);
                 setErrorMessage('Publish Hatası:', error);
