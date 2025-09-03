@@ -27,8 +27,7 @@ import styles from './TaskEditorStyle'; // Adjust the import path as necessary
 
 
 function TaskEditor({ visible, onDismiss, onSave, initial, t, pomp, defaultDuration }) {
-  const { colors } = useTheme();
-
+  
   const [enabled, setEnabled] = useState(initial?.enabled ?? true);
   const [nextRun, setNextRun] = useState(initial?.nextRun ?? new Date());
   const [durationDlg, setDurationDlg] = useState({ value: "" });
@@ -61,25 +60,7 @@ function TaskEditor({ visible, onDismiss, onSave, initial, t, pomp, defaultDurat
     `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
       d.getHours()
     )}:${pad(d.getMinutes())}`;
-  /*
-    const repeatToLabel = (r) => {
-      if (!r) return "—";
-      switch (r.type) {
-        case "once":
-          return "Once";
-        case "daily":
-          return "Daily";
-        case "weekly":
-          return `Weekly • ${(r.days || [])
-            .slice()
-            .sort()
-            .map((n) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][n])
-            .join("/")}`;
-        default:
-          return "—";
-      }
-    };
-  */
+   
   const weekDays = [t("Sun"), t("Mon"), t("Tue"), t("Wed"), t("Thu"), t("Fri"), t("Sat")];
 
 
@@ -91,7 +72,7 @@ function TaskEditor({ visible, onDismiss, onSave, initial, t, pomp, defaultDurat
       setDurationDlg({ value: "custom", });
       setcustomSeconds(initial?.durationValue);
     } else {
-      setDurationDlg({ value: initial?.durationValue.toString() });
+      setDurationDlg({ value: initial?.durationValue?.toString() });
     }
  
     setRepeatType(initial?.repeat?.type ?? "daily");

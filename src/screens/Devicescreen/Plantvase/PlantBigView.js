@@ -230,10 +230,9 @@ const PlantBigView = () => {
             const docSnap = await docRef.get();
 
             if (docSnap._exists) {
-                //console.log("Kullanıcı verisi:", docSnap.data());
-                debugger;
+         
                 var data = docSnap._data;
-                setSoilMoisture
+                 
                 var days = data?.PompWorkingDays
                     ? String(data.PompWorkingDays)
                         .split(",")
@@ -247,7 +246,7 @@ const PlantBigView = () => {
                     enabled: data?.pomp,
                     nextRun: (data?.PompWorkingnextRun == null ? new Date() : new Date(data?.PompWorkingnextRun)),
                     repeat: { type: data?.PompWorkingPeriod, days: days },
-                    durationValue: data.PompWorkingDuration,
+                    durationValue: data?.PompWorkingDuration,
                 });
 
             } else {
@@ -284,19 +283,7 @@ const PlantBigView = () => {
 
     }, []);
 
-    // Örnek veri (gerçek sensör verisiyle değiştirilebilir)
-    /*const days = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cumrt", "Paz"];
-    const humidityData = [60, 65, 70, 75, 72, 70, 60];
-    const temperatureData = [22, 24, 26, 25, 23, 25, 26];
-    const soilMoistureData = [40, 45, 38, 50, 42, 34, 50];
-    const chartConfig = {
-        backgroundColor: "#e0f7fa",
-        backgroundGradientFrom: "#e0f7fa",
-        backgroundGradientTo: "#b2ebf2",
-        decimalPlaces: 0,
-        color: (opacity = 1) => `rgba(0, 150, 136, ${opacity})`,
-        labelColor: () => '#00796b',
-    };*/
+  
 
     const changePompStatus = async (status) => {
 
@@ -404,14 +391,13 @@ const PlantBigView = () => {
 
     const openTaskCreate = async () => {
 
-        await getDevice(pomp);
+        await getDevice();
         setEditorOpen(true);
     };
     return (
 
         <LinearGradient colors={['#090979', '#00D4FF', '#020024']} style={styles.container}>
-
-
+ 
             <Card style={styles.container}>
                 <ScrollView>
                     <View style={styles.imageContainer}>
@@ -425,13 +411,9 @@ const PlantBigView = () => {
                     </View>
 
                     <View style={styles.infoSection}>
-                        <Text style={styles.name}> {devicename} </Text>
-                        <Text style={styles.name}>Aloe Vera</Text>
-                        <Text style={styles.description}>Güneşli alanları seven, suyu depolayan bir bitki türüdür.</Text>
+                        <Text style={styles.name}> {devicename} </Text> 
                     </View>
-                    <StatusCard icon={icon}
-                        // temperature={temperature}
-                        //airHumidity={airHumidity}
+                    <StatusCard icon={icon} 
                         soil_moisture={soil_moisture}
                         t={t}
                     ></StatusCard>
@@ -450,7 +432,7 @@ const PlantBigView = () => {
                             />
                             <Text style={styles.pumpLabel}>{isPompOpen ? `${pompRemaining}s` : "Pompa 1"}</Text>
 
-                            <Switch value={pompRunning} onValueChange={(e) => changePompStatus(e)} />
+                            <Switch value={isPompOpen} onValueChange={(e) => changePompStatus(e)} />
                         </View>
 
                         <View style={styles.cell}>
@@ -461,35 +443,7 @@ const PlantBigView = () => {
                             />
                         </View>
                     </View>
-
-                    {/* Nem 
-            <View style={styles.chartSection}>
-                <Text style={styles.chartTitle}>Sıcaklık (°C)</Text>
-                <LineChart
-                    data={{ labels: days, datasets: [{ data: temperatureData }] }}
-                    width={screenWidth - 40}
-                    height={180}
-                    chartConfig={chartConfig}
-                    bezier
-                    style={styles.chart}
-                />
-            </View>
- 
-            <View style={styles.chartSection}>
-                <Text style={styles.chartTitle}>Toprak Nem Oranı (%)</Text>
-                <LineChart
-                    data={{ labels: days, datasets: [{ data: soilMoistureData }] }}
-                    width={screenWidth - 40}
-                    height={180}
-                    chartConfig={chartConfig}
-                    bezier
-                    style={styles.chart}
-                />
-            </View>
-*/}
-
-
-
+  
                     <DurationDlg
 
                         duration={durationDlg}
@@ -504,8 +458,8 @@ const PlantBigView = () => {
                         visible={editorOpen}
                         defaultDuration={defaultDuration}
                         onDismiss={() => setEditorOpen(false)}
-                        pomp={selectedPomp}
-
+                        pomp={1}
+                            
                         onSave={(e) => updatePompTask(e)}
                         initial={initialPompTask}
                         t={t}
@@ -513,13 +467,13 @@ const PlantBigView = () => {
 
 
 
-                    {pompRunTime ?
+                    {pompRunning ?
                         <LottieView
                             source={require('../../assets/water.json')}
                             autoPlay
                             loop
                             style={styles.lottie}
-                        /> : ""}
+                        /> : null}
                     <ErrorMessage message={errorMessage}></ErrorMessage>
                 </ScrollView>
             </Card>
