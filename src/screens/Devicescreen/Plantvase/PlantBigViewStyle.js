@@ -102,5 +102,26 @@ export default StyleSheet.create({
     rightColumn: {
         alignItems: 'center',
         justifyContent: 'center',
+    }, 
+     grid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    cell: {
+        width: '45%',
+        height: 120,
+        backgroundColor: '#e0f2f1',
+        marginBottom: 12,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    pumpLabel: {
+        marginTop: 8,
+        fontSize: 14,
+        color: '#00796b',
+        fontWeight: '600',
     },
 });

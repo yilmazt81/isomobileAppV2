@@ -59,15 +59,15 @@ const PlantBigViewPomp = () => {
     const clientRef = useRef(null);
     const [isPomp1Open, setisPomp1Open] = useState(false);
     const [isPomp2Open, setisPomp2Open] = useState(false);
-    const [pump1Remaining, setpump1Remaining] = useState(0);
-    const [pump2Remaining, setpump2Remaining] = useState(0);
+    const [pomp1Remaining, setpomp1Remaining] = useState(0);
+    const [pomp2Remaining, setpomp2Remaining] = useState(0);
     const [connected, setConnected] = useState(false);
     const [imageUri, setImageUri] = useState(null);
     const [transferred, setTransferred] = useState(0);
     const defaultDuration = 30;
-    const [durationDlg, setDurationDlg] = useState({ open: false, pump: 1, value: String(defaultDuration) });
-    const [pump1On, setPump1On] = useState(false);
-    const [pump2On, setPump2On] = useState(false);
+    const [durationDlg, setDurationDlg] = useState({ open: false, pomp: 1, value: String(defaultDuration) });
+    const [pomp1On, setPomp1On] = useState(false);
+    const [pomp2On, setPomp2On] = useState(false);
     const [selectedPomp, setSelectedPomp] = useState(1);
     const [enablegeoLocation, setEnablegeoLocation] = useState(false);
     const [initialPompTask, setinitialPompTask] = useState(null);
@@ -152,11 +152,11 @@ const PlantBigViewPomp = () => {
                  
                     if (arr[0] === "pompstatus") {
                         if (arr[1] === "1") {
-                            setPump1On(arr[2] === "1");
+                            setpomp1On(arr[2] === "1");
                         }
 
                         if (arr[1] === "2") {
-                            setPump2On(arr[2] === "1");
+                            setpomp2On(arr[2] === "1");
                         }
                     }
                 }
@@ -236,14 +236,14 @@ const PlantBigViewPomp = () => {
                 debugger;
                 setErrorMessage(`Publish Hatası: ${error.message}`);
             } else {
-                setDurationDlg({ open: false, pump: pompnumber, value: String("") });
+                setDurationDlg({ open: false, pomp: pompnumber, value: String("") });
                 if (pompnumber === 1) {
-                    setPump1On(true);
-                    setpump1Remaining(time);
+                    setpomp1On(true);
+                    setpomp1Remaining(time);
 
                 } else if (pompnumber === 2) {
-                    setPump2On(true);
-                    setpump2Remaining(time);
+                    setpomp2On(true);
+                    setpomp2Remaining(time);
                 }
 
                 //setErrorMessage(`Komut gönderildi: ${JSON.stringify(command)}`);
@@ -388,12 +388,12 @@ const PlantBigViewPomp = () => {
     };
 
 
-    const openDurationFor = (pumpNnumber) => {
-        setDurationDlg({ open: true, pump: pumpNnumber, value: String("") });
+    const openDurationFor = (pompNnumber) => {
+        setDurationDlg({ open: true, pomp: pompNnumber, value: String("") });
 
     };
 
-    const handlePump1 = async () => {
+    const handlepomp1 = async () => {
         await StartPomp(1, 5);
     };
 
@@ -404,17 +404,17 @@ const PlantBigViewPomp = () => {
         setEditorOpen(true);
     };
 
-    const handlePump2 = async () => {
+    const handlepomp2 = async () => {
 
         await StartPomp(2, 5);
     };
 
 
-    const handlePump = async (pomp, time) => {
+    const handlepomp = async (pomp, time) => {
 
         await StartPomp(pomp, time);
 
-        setDurationDlg({ open: false, pump: pomp, value: defaultDuration });
+        setDurationDlg({ open: false, pomp: pomp, value: defaultDuration });
 
     };
 
@@ -433,12 +433,12 @@ const PlantBigViewPomp = () => {
         }
     };
 
-    const changePompStatus = async (pumpNumber, status) => {
+    const changePompStatus = async (pompNumber, status) => {
 
-        if (pumpNumber === 1) {
+        if (pompNumber === 1) {
             setisPomp1Open(status);
             await UpdatePompStatus({ pomp1: status });
-        } else if (pumpNumber === 2) {
+        } else if (pompNumber === 2) {
             setisPomp2Open(status);
             await UpdatePompStatus({ pomp2: status });
         }
@@ -591,17 +591,17 @@ const PlantBigViewPomp = () => {
                             <View style={styles.grid}>
                                 <View style={styles.cell}>
                                     <IconButton
-                                        icon={pump1On ? "water-pump" : "play-circle-outline"}
+                                        icon={pomp1On ? "water-pomp" : "play-circle-outline"}
                                         size={40}
-                                        onPress={() => handlePump1()}
+                                        onPress={() => handlepomp1()}
                                         onLongPress={() => openDurationFor(1)}
 
-                                        style={[styles.pumpBtn, { borderColor: "#00BFA5" }, pump1On && { borderWidth: 0 }]}
-                                        containerColor={pump1On ? "#00BFA5" : undefined}
-                                        iconColor={pump1On ? "white" : "#00BFA5"}
+                                        style={[styles.pompBtn, { borderColor: "#00BFA5" }, pomp1On && { borderWidth: 0 }]}
+                                        containerColor={pomp1On ? "#00BFA5" : undefined}
+                                        iconColor={pomp1On ? "white" : "#00BFA5"}
                                         disabled={!isPomp1Open}
                                     />
-                                    <Text style={styles.pumpLabel}>{pump1On ? `${pump1Remaining}s` : "Pompa 1"}</Text>
+                                    <Text style={styles.pompLabel}>{pomp1On ? `${pomp1Remaining}s` : "Pompa 1"}</Text>
 
                                     <Switch value={isPomp1Open} onValueChange={(e) => changePompStatus(1, e)} />
                                 </View>
@@ -616,16 +616,16 @@ const PlantBigViewPomp = () => {
 
                                 <View style={styles.cell}>
                                     <IconButton
-                                        icon={pump2On ? "water-pump" : "play-circle-outline"}
+                                        icon={pomp2On ? "water-pomp" : "play-circle-outline"}
                                         size={40}
-                                        onPress={() => handlePump2()}
+                                        onPress={() => handlepomp2()}
                                         onLongPress={() => openDurationFor(2)}
-                                        style={[styles.pumpBtn, { borderColor: "#00BFA5" }, pump2On && { borderWidth: 0 }]}
-                                        containerColor={pump2On ? "#00BFA5" : undefined}
-                                        iconColor={pump2On ? "white" : "#00BFA5"}
+                                        style={[styles.pompBtn, { borderColor: "#00BFA5" }, pomp2On && { borderWidth: 0 }]}
+                                        containerColor={pomp2On ? "#00BFA5" : undefined}
+                                        iconColor={pomp2On ? "white" : "#00BFA5"}
                                         disabled={!isPomp2Open}
                                     />
-                                    <Text style={styles.pumpLabel}>{pump2On ? `${pump2Remaining}s` : "Pompa 2"}</Text>
+                                    <Text style={styles.pompLabel}>{pomp2On ? `${pomp2Remaining}s` : "Pompa 2"}</Text>
                                     <Switch value={isPomp2Open} onValueChange={(e) => changePompStatus(2, e)} />
                                 </View>
 
@@ -655,7 +655,7 @@ const PlantBigViewPomp = () => {
                         closeDuration={() => setDurationDlg({ ...durationDlg, open: false, value: String(defaultDuration) })}
 
                         defaultDuration={defaultDuration}
-                        confirmDuration={(e, t) => handlePump(e, t)}
+                        confirmDuration={(e, t) => handlepomp(e, t)}
                         errorMessage={errorMessage}
                     ></DurationDlg>
 

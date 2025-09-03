@@ -94,7 +94,7 @@ const DashboardStack = () => {
       <Stack.Screen name="ManuelSetting" component={ManuelSetting} 
       options={() => ({ title: t("ManuelSetting") })} 
       />
-      <Stack.Screen name="PlantBigView" component={PlantBigView} title="Bitki Özellikleri" />
+      <Stack.Screen name="PlantBigView" component={PlantBigView}   options={() => ({ title: t("PlantBigViewSetting") })}   />
       <Stack.Screen name='PlantBigViewPomp' options={() => ({ title: t("MultipompSettings") })} 
       
       component={PlantBigViewPomp}></Stack.Screen>
