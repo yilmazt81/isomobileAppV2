@@ -13,7 +13,7 @@ import { useRoute } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import LottieView from 'lottie-react-native';
 import Slider from '@react-native-community/slider';
-//import storage from '@react-native-firebase/storage';
+import storage from '@react-native-firebase/storage';
 
 import firestore from '@react-native-firebase/firestore';
 import styles from './PlantBigViewStyle';
@@ -96,7 +96,7 @@ const PlantBigView = () => {
         }
         clientRef.current = mqtt.connect(Config.mqttwebsocket, {
             port: Config.mqttWebSocketport,
-            clientId: userid,
+            clientId: userid + "_plantBigView",
             username: Config.mqtt_username,    // eğer auth varsa
             password: Config.mqtt_password,    // eğer auth varsa
             rejectUnauthorized: false, // self-signed cert için
@@ -114,8 +114,10 @@ const PlantBigView = () => {
         clientRef.current.on('message', (topic, msg) => {
             setMessage(null);
             if (topic === topicsensor) {
+
                 var jsonData = JSON.parse(msg.toString());
                 setSoilMoisture(jsonData.soil_moisture);
+
                 var icon_ = getMoistureIcon(getSoilMoistureLevel(jsonData.soil_moisture));
                 console.log(icon_);
                 seticon(icon_);
@@ -129,13 +131,14 @@ const PlantBigView = () => {
             if (topic === statusTopic) {
 
                 const arr = message.split('|');
-                debugger;
+
                 if (arr.length === 3) {
 
                     if (arr[0] === "pompstatus") {
 
                         setpompRunning(arr[2] === "1");
-
+                        console.log(message);
+                         
                     }
                 }
 
@@ -155,10 +158,8 @@ const PlantBigView = () => {
     }
 
     const StartPomp = async (time) => {
-
-
         setpompRunning(false);
-        if (!client) {
+        if (!clientRef.current) {
             console.warn('MQTT client henüz bağlanmadı.');
             return;
         }
@@ -170,7 +171,7 @@ const PlantBigView = () => {
             time: time
         };
 
-        client.publish(topiccommand, JSON.stringify(command), { qos: 1, retain: false }, (error) => {
+        clientRef.current.publish(topiccommand, JSON.stringify(command), { qos: 1, retain: false }, (error) => {
             if (error) {
                 console.error('Publish Hatası:', error);
                 setErrorMessage('Publish Hatası:', error);
@@ -187,38 +188,38 @@ const PlantBigView = () => {
     const uploadImage = async (uri) => {
 
 
-        /* const filename = uri.substring(uri.lastIndexOf('/') + 1);
-         const uploadUri = Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
- 
-         setUploading(true);
-         setTransferred(0);
- 
-         const task = storage()
-             .ref(filename)
-             .putFile(uploadUri);
-         debugger;
-         // set progress state
-         task.on('state_changed', snapshot => {
-             setTransferred(
-                 Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 10000
-             );
-         });
- 
-         try {
-             await task;
-         } catch (e) {
-             console.error(e);
-             setErrorMessage(e.message);
-         }
- 
-         setUploading(false);
-         Alert.alert(
-             'Photo uploaded!',
-             'Your photo has been uploaded to Firebase Cloud Storage!'
-         );
- 
-         setImageUri(null);
-         */
+        const filename = uri.substring(uri.lastIndexOf('/') + 1);
+        const uploadUri = Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+
+        setUploading(true);
+        setTransferred(0);
+
+        const task = storage()
+            .ref(filename)
+            .putFile(uploadUri);
+        debugger;
+        // set progress state
+        task.on('state_changed', snapshot => {
+            setTransferred(
+                Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 10000
+            );
+        });
+
+        try {
+            await task;
+        } catch (e) {
+            console.error(e);
+            setErrorMessage(e.message);
+        }
+
+        setUploading(false);
+        Alert.alert(
+            'Photo uploaded!',
+            'Your photo has been uploaded to Firebase Cloud Storage!'
+        );
+
+        setImageUri(null);
+
     };
 
 
@@ -230,9 +231,9 @@ const PlantBigView = () => {
             const docSnap = await docRef.get();
 
             if (docSnap._exists) {
-         
+
                 var data = docSnap._data;
-                 
+
                 var days = data?.PompWorkingDays
                     ? String(data.PompWorkingDays)
                         .split(",")
@@ -241,6 +242,8 @@ const PlantBigView = () => {
                         .map((x) => parseInt(x, 10))    // int’e çevir
                         .filter((n) => !isNaN(n))       // NaN olanları at
                     : []
+
+                setIsPompOpen(data?.pomp);
                 setinitialPompTask({
                     pompnumber: 1,
                     enabled: data?.pomp,
@@ -259,11 +262,13 @@ const PlantBigView = () => {
             setErrorMessage(error.message);
         }
     };
+
+
     useEffect(() => {
 
 
         const pingInterval = setInterval(() => {
-            const c = mqttService.getClient();
+            const c = clientRef.current;
             if (c && c.connected) {
                 c.publish(`${deviceid}/ping`, 'ping', { qos: 0, retain: false });
             }
@@ -277,13 +282,14 @@ const PlantBigView = () => {
         return () => {
 
             clearInterval(pingInterval);
+            clientRef.current?.end(true); // force end
             if (typeof cleanup === 'function') cleanup();
         };
 
 
     }, []);
 
-  
+
 
     const changePompStatus = async (status) => {
 
@@ -304,10 +310,13 @@ const PlantBigView = () => {
             setErrorMessage(error.message);
         }
     };
-    const handlePump = async () => {
-        await StartPomp(5);
-    };
+    const handlepomp = async (pomp, time) => {
 
+        await StartPomp(time);
+
+        setDurationDlg({ open: false, pomp: 1, value: defaultDuration });
+
+    };
 
     const updatePompTask = async (task) => {
 
@@ -354,9 +363,9 @@ const PlantBigView = () => {
                     PSM: data?.PompWorkingMinute,
                     PRT: data?.PompWorkingPeriod,
                     PWWD: data?.PompWorkingDays,
-                    P1WT: data?.PompWorkingDuration,
-                    DLat: data?.devicelatitude,
+                    PWT: data?.PompWorkingDuration, 
                 };
+               
                 sendCommandToDevice(command);
             } else {
                 console.log("Böyle bir doküman yok!");
@@ -369,17 +378,18 @@ const PlantBigView = () => {
     }
 
     const sendCommandToDevice = async (command) => {
-        const mqttClient = mqttService.getClient();
+        //const mqttClient = mqttService.getClient();
         setErrorMessage(null);
 
-        if (!mqttClient) {
+        if (!clientRef.current) {
             console.warn('MQTT client henüz bağlanmadı.');
             setErrorMessage("MQTT client henüz bağlanmadı.")
             return;
         }
         var topic = deviceid + '/command';
+        //setErrorMessage(topic);
 
-        mqttClient.publish(topic, JSON.stringify(command), { qos: 1, retain: false }, (error) => {
+        clientRef.current.publish(topic, JSON.stringify(command), { qos: 1, retain: false }, (error) => {
 
             if (error) {
                 console.error('Publish Hatası:', error);
@@ -394,10 +404,15 @@ const PlantBigView = () => {
         await getDevice();
         setEditorOpen(true);
     };
+    const openDurationFor = () => {
+        setDurationDlg({ open: true, pomp: 1, value: String("") });
+
+    };
+
     return (
 
         <LinearGradient colors={['#090979', '#00D4FF', '#020024']} style={styles.container}>
- 
+
             <Card style={styles.container}>
                 <ScrollView>
                     <View style={styles.imageContainer}>
@@ -411,9 +426,9 @@ const PlantBigView = () => {
                     </View>
 
                     <View style={styles.infoSection}>
-                        <Text style={styles.name}> {devicename} </Text> 
+                        <Text style={styles.name}> {devicename} </Text>
                     </View>
-                    <StatusCard icon={icon} 
+                    <StatusCard icon={icon}
                         soil_moisture={soil_moisture}
                         t={t}
                     ></StatusCard>
@@ -422,7 +437,7 @@ const PlantBigView = () => {
                             <IconButton
                                 icon={pompRunning ? "water-pump" : "play-circle-outline"}
                                 size={40}
-                                onPress={() => handlePump()}
+                                onPress={() => handlepomp(1,5)}
                                 onLongPress={() => openDurationFor()}
 
                                 style={[styles.pumpBtn, { borderColor: "#00BFA5" }, isPompOpen && { borderWidth: 0 }]}
@@ -430,7 +445,7 @@ const PlantBigView = () => {
                                 iconColor={isPompOpen ? "white" : "#00BFA5"}
                                 disabled={!isPompOpen}
                             />
-                            <Text style={styles.pumpLabel}>{isPompOpen ? `${pompRemaining}s` : "Pompa 1"}</Text>
+                            <Text style={styles.pumpLabel}>{pompRunning ? `${pompRemaining}s` : "Pompa 1"}</Text>
 
                             <Switch value={isPompOpen} onValueChange={(e) => changePompStatus(e)} />
                         </View>
@@ -443,14 +458,14 @@ const PlantBigView = () => {
                             />
                         </View>
                     </View>
-  
+
                     <DurationDlg
 
                         duration={durationDlg}
                         closeDuration={() => setDurationDlg({ ...durationDlg, open: false, value: String(defaultDuration) })}
 
                         defaultDuration={defaultDuration}
-                        confirmDuration={(e, t) => handlePump(e, t)}
+                        confirmDuration={(e, t) => handlepomp(e, t)}
                         errorMessage={errorMessage}
                     ></DurationDlg>
 
@@ -459,7 +474,7 @@ const PlantBigView = () => {
                         defaultDuration={defaultDuration}
                         onDismiss={() => setEditorOpen(false)}
                         pomp={1}
-                            
+
                         onSave={(e) => updatePompTask(e)}
                         initial={initialPompTask}
                         t={t}
