@@ -138,8 +138,11 @@ const PlantBigView = () => {
 
                         setpompRunning(arr[2] === "1");
                         console.log(message);
-                         
+
                     }
+                } else if (arr.length === 4) {
+                    setpompRunning(arr[2] === "1");
+                    setpompRemaining(arr[3]);
                 }
 
             }
@@ -363,9 +366,9 @@ const PlantBigView = () => {
                     PSM: data?.PompWorkingMinute,
                     PRT: data?.PompWorkingPeriod,
                     PWWD: data?.PompWorkingDays,
-                    PWT: data?.PompWorkingDuration, 
+                    PWT: data?.PompWorkingDuration,
                 };
-               
+
                 sendCommandToDevice(command);
             } else {
                 console.log("Böyle bir doküman yok!");
@@ -437,7 +440,7 @@ const PlantBigView = () => {
                             <IconButton
                                 icon={pompRunning ? "water-pump" : "play-circle-outline"}
                                 size={40}
-                                onPress={() => handlepomp(1,5)}
+                                onPress={() => handlepomp(1, 5)}
                                 onLongPress={() => openDurationFor()}
 
                                 style={[styles.pumpBtn, { borderColor: "#00BFA5" }, isPompOpen && { borderWidth: 0 }]}
@@ -451,11 +454,20 @@ const PlantBigView = () => {
                         </View>
 
                         <View style={styles.cell}>
-                            <IconButton icon="calendar-clock"
-                                size={34}
-                                disabled={!isPompOpen}
-                                onPress={() => openTaskCreate()}
-                            />
+
+                            {pompRunning ?
+                                <LottieView
+                                    source={require('../../assets/water.json')}
+                                    autoPlay
+                                    loop
+                                    style={styles.lottie}
+                                /> : <IconButton icon="calendar-clock"
+                                    size={34}
+                                    disabled={!isPompOpen}
+                                    onPress={() => openTaskCreate()}
+                                />}
+
+
                         </View>
                     </View>
 
@@ -482,13 +494,7 @@ const PlantBigView = () => {
 
 
 
-                    {pompRunning ?
-                        <LottieView
-                            source={require('../../assets/water.json')}
-                            autoPlay
-                            loop
-                            style={styles.lottie}
-                        /> : null}
+
                     <ErrorMessage message={errorMessage}></ErrorMessage>
                 </ScrollView>
             </Card>

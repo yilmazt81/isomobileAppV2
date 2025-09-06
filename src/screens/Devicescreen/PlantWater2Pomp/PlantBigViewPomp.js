@@ -149,7 +149,7 @@ const PlantBigViewPomp = () => {
                 const arr = message.split('|');
 
                 if (arr.length === 3) {
-                 
+
                     if (arr[0] === "pompstatus") {
                         if (arr[1] === "1") {
                             setpomp1On(arr[2] === "1");
@@ -158,6 +158,20 @@ const PlantBigViewPomp = () => {
                         if (arr[1] === "2") {
                             setpomp2On(arr[2] === "1");
                         }
+                    } else if (arr.length === 4) {
+
+                        if (arr[1] === "1") {
+                            setpomp1On(arr[2] === "1");
+                            setpomp1Remaining(arr[3]);
+                        }
+
+                        if (arr[1] === "2") {
+                            setpomp2On(arr[2] === "1");
+                            setpomp2Remaining(arr[3]);
+                        }
+
+
+
                     }
                 }
 
@@ -312,7 +326,7 @@ const PlantBigViewPomp = () => {
         const pingInterval = setInterval(() => {
             const c = mqttService.getClient();
             if (c && c.connected) {
-                c.publish(`${deviceid}/ping`, 'ping', { qos: 0,retain: false });
+                c.publish(`${deviceid}/ping`, 'ping', { qos: 0, retain: false });
             }
         }, 10000); // 10 saniyede bir ping
 

@@ -86,7 +86,13 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0"
+        versionName "1.1.0"
+        externalNativeBuild { //build icin eklendi.
+            cmake {
+                cppFlags "-fexceptions -frtti"
+                arguments "-DANDROID_STL=c++_shared", "-DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld"
+            }
+        }
     }
     signingConfigs {
         debug {
